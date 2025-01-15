@@ -6,10 +6,10 @@
 ▁▂▃▄▅▆▇▇▆▅▄▃▂▃▄▆▇▇▆▅▄▇▆▅▄▃▁▂▆▇▆▅▄▇▆▅▄▃▁▂▃▄▆▇▇▆▅▄▇▆▅▄▃▁▂▆▇▆▅▄▇▆▅▄▃▁▂
 
 Follow us on social media for the latest updates:
-- Twitter: [@OOBEProtocol](#https://x.com/OOBEonSol)
-- Website: [OOBE](#https://oobe.me/)
-- TG: [@oobesol](#https://t.me/oobesol)
-- GitHub: [OOBE Protocol SDK](#https://github.com/CryptoFamilyNFT/oobe-protocol)
+- Twitter: [@OOBEProtocol](https://x.com/OOBEonSol)
+- Website: [OOBE](https://oobe.me/)
+- TG: [@oobesol](https://t.me/oobesol)
+- GitHub: [OOBE Protocol SDK](https://github.com/CryptoFamilyNFT/oobe-protocol)
 
 ## Overview
 The OOBE Protocol SDK is a framework designed to build and manage Solana-based AI agents. It supports advanced features for conversational memory, parallel function calls, smart tool selection, and message history tracking using databases like MongoDB or Redis. This SDK is the core component for developing AI agents on the Solana blockchain, combining the power of AI with blockchain technology.
