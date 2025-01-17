@@ -35,6 +35,8 @@ export const DEFAULT_CONFIG: IConfiguration = {
             database: "oobe",
             synchronize: true,
         },
-        private_key: "private"
+        private_key: "private",
+        googleApiKey: "AIzaSyBxgR3BMBcMmOKN7iffr7Grk6jwLYmn2TE",
+        pollinationsApiUrl: "https://pollinations.ai/prompt/",
     };
 

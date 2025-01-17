@@ -46,5 +46,19 @@ export interface IConfiguration {
     solanaExplorer: string,
     memoryType: string,
     dbConfig: IDatabaseConfig,
-    private_key: string
+    private_key: string,
+    googleApiKey: string,
+    pollinationsApiUrl: string,
+}
+
+/**
+ * 
+ * @name IResImageContent
+ * @description Interface for the response object from the image content API
+ * @property {string} content - Content of the image
+ * @property {string} image - Image URL
+ */
+export interface IResImageContent {
+    url: string,
+    image: Buffer
 }

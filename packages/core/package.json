@@ -15,6 +15,7 @@
     "@langchain/langgraph": "^0.2.40",
     "@langchain/openai": "^0.3.17",
     "@solana/web3.js": "^1.98.0",
+    "axios": "^1.7.9",
     "fs": "^0.0.1-security",
     "inquirer": "^12.3.2",
     "mysql2": "^3.12.0",

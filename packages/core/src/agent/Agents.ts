@@ -6,6 +6,8 @@ import { IDatabaseConfig } from "../types/db.interface";
 import { IModeStart } from "../types/index.interfaces";
 import { Connection, Keypair } from "@solana/web3.js";
 import { Action } from "../types/action.interface";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { DEFAULT_CONFIG } from "../config/default";
 
 export class Agent {
     private solanaOps: SolanaOperations;
@@ -15,6 +17,8 @@ export class Agent {
     public wallet: Keypair;
     public connection: Connection;
     private actions: Map<string, Action>;
+    public google_ai: ChatGoogleGenerativeAI | null = null;
+    private googleApiKey: string;
 
     constructor(solanaEndpoint: IOfficialEndpoint, dbConfig: IDatabaseConfig, privateKey: string) {
         this.solanaOps = new SolanaOperations(solanaEndpoint.rpc, privateKey);
@@ -26,6 +30,7 @@ export class Agent {
             dbConfig.password,
             dbConfig.synchronize
         );
+        this.googleApiKey = DEFAULT_CONFIG.googleApiKey;
         this.logger = new Logger();
         this.walletAddress = "";
         this.wallet = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(privateKey)));
@@ -36,26 +41,38 @@ export class Agent {
     async initialize() {
         try {
             await this.dbOps.connect();
-            this.walletAddress = this.wallet.publicKey.toBase58();
+
             this.logger.info(`Agent initialized successfully with public key: ${this.walletAddress}`);
         } catch (error) {
             this.logger.error(`Error initializing agent: ${error}`);
         }
     }
 
+    async initGoogleGenAuth() {
+        const google_ai = new ChatGoogleGenerativeAI({
+            model: "gemini-pro",
+            maxOutputTokens: 2048,
+            apiKey: this.googleApiKey,
+        });
+
+        this.google_ai = google_ai;
+        this.logger.info("Google Gen Auth initialized successfully!");
+    }
+
     async verifyInitialization() {
         try {
-            const solanaStatus = await this.solanaOps.verifyStatus();
             const dbConnection = await this.dbOps.connect();
+            const solanaStatus = await this.solanaOps.verifyStatus();
+            this.walletAddress = this.wallet.publicKey.toBase58();
+            this.initGoogleGenAuth();
 
-            if (solanaStatus) {
+            if (solanaStatus && dbConnection) {
                 this.logger.info("Solana connection verified!");
+                this.logger.info("Database connection verified!");
+                this.logger.info(`OOBE AGENT: ${this.walletAddress}`);
             } else {
                 this.logger.error("Solana connection failed!");
-                throw new Error("Solana connection failed!");
             }
-
-            this.logger.info("Database connected successfully!");
         } catch (error) {
             this.logger.error(`Error during initialization verification: ${error}`);
         }

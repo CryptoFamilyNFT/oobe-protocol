@@ -1,7 +1,7 @@
-import { Action } from "../../types/action";
-import { SolanaAgentKit } from "../../agent";
+import { Action } from "../../types/action.interface";
 import { z } from "zod";
-import { create_image } from "../../tools/agent";
+import { Agent } from "../../agent/Agents";
+import ContentGenerator from "../../utils/helpers";
 
 const createImageAction: Action = {
   name: "CREATE_IMAGE",
@@ -14,13 +14,13 @@ const createImageAction: Action = {
     "generate picture",
   ],
   description:
-    "Create an AI-generated image based on a text prompt using OpenAI's DALL-E models",
+    "Generate an image based on a text prompt using flux, flux-3d, flux-anime, flux-realism ",
   examples: [
     [
       {
         input: {
           prompt: "A beautiful sunset over a mountain landscape",
-          model: "dall-e-3",
+          model: "flux-3d",
           size: "1024x1024",
           quality: "standard",
           style: "natural",
@@ -41,9 +41,9 @@ const createImageAction: Action = {
       .max(1000)
       .describe("The text description of the image to generate"),
     model: z
-      .enum(["dall-e-3"])
-      .default("dall-e-3")
-      .describe("The AI model to use for generation"),
+      .enum(["flux", "flux-3d", "flux-anime", "flux-realism"])
+      .default("flux")
+      .describe("The AI model to use for generation. 'flux-anime' for anime images, 'flux-realism' for realistic images"),
     size: z
       .enum(["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"])
       .default("1024x1024")
@@ -56,22 +56,35 @@ const createImageAction: Action = {
       .enum(["natural", "vivid"])
       .default("natural")
       .describe("The style of the generated image"),
+    seed: z
+        .enum(["random", "custom"])
+        .default("random")
+        .describe("The seed for the generated")
   }),
-  handler: async (agent: SolanaAgentKit, input: Record<string, any>) => {
+  handler: async (agent: Agent, input: Record<string, any>) => {
     try {
-      if (!agent.config.OPENAI_API_KEY) {
+      if (!agent) {
         return {
           status: "error",
-          message: "OpenAI API key not found in agent configuration",
+          message: "GenAI API key not found in agent configuration",
         };
       }
 
-      const { prompt, model, size } = input;
-      const response = await create_image(agent, prompt, model, size);
+      const _func = new ContentGenerator(agent); 
 
+      const { prompt, model, size } = input;
+      const response = await _func.generateImage(agent, prompt, model, size);
+
+      if (!response) {
+        return {
+          status: "error",
+          message: "Failed to generate image",
+        };
+      }
+      
       return {
         status: "success",
-        imageUrl: response.images[0].url,
+        imageUrl: response.url,
         message: "Successfully generated image",
       };
     } catch (error: any) {
