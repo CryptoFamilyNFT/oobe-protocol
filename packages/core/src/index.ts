@@ -4,11 +4,7 @@ import Logger from "./utils/logger/logger";
 import { IConfiguration } from "./config/types/config.types";
 import launchPumpfunTokenAction from "./actions/pumpfun/pumpfun.action";
 
-/**
- * @name OobeCore
- * @description Core module for the OOBE protocol
- * @example const core = new OobeCore(config)
- * @author oobe-protocol                          
+/**                     
                                ..................                               
                         ............. .................                         
                    ,....... .  .......... . .,,/ # # %,  .                      
@@ -43,7 +39,10 @@ import launchPumpfunTokenAction from "./actions/pumpfun/pumpfun.action";
                        (((,/// /(#((((((((((((((((((((((((((((((((((# .///(      
                            //////*  ###((((((((((((((((((((((((((  ///((         
                                 ///////,    %#######((((##    /(///(             
-                                      .//////////////////(///(                   
+ * @name OobeCore
+ * @description Core module for the OOBE protocol
+ * @example const core = new OobeCore(config)
+ * @author oobe-protocol                   
 */
 export class OobeCore {
   private agent: Agent;
