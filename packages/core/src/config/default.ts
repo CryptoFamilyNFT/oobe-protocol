@@ -1,5 +1,7 @@
 import { IConfiguration, IOfficialEndpoint, ISolanaEndpoint, IUnofficialEndpoints } from "./types/config.types";
 
+
+
 let ENDPOINTS_CONFIG: ISolanaEndpoint  = {
     official: {
         rpc: "https://api.mainnet-beta.solana.com"
@@ -25,5 +27,14 @@ export const DEFAULT_CONFIG: IConfiguration = {
         solanaUnofficialEndpoints: ENDPOINTS_CONFIG.unOfficial as IUnofficialEndpoints[],
         solanaExplorer: "https://explorer.solana.com",
         memoryType: "mongodb", // todo: implement more memory types
+        dbConfig: {
+            host: "localhost",
+            port: 3333,
+            username: "root",
+            password: "root",
+            database: "oobe",
+            synchronize: true,
+        },
+        private_key: "private"
     };
 

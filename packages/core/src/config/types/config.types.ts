@@ -1,3 +1,5 @@
+import { IDatabaseConfig } from "../../types/db.interface"
+
 /**
  * @name IUnofficialEndpoints
  * @description Interface for the unofficial endpoints object
@@ -43,4 +45,6 @@ export interface IConfiguration {
     solanaUnofficialEndpoints: IUnofficialEndpoints[],
     solanaExplorer: string,
     memoryType: string,
+    dbConfig: IDatabaseConfig,
+    private_key: string
 }
