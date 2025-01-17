@@ -17,7 +17,7 @@ import launchPumpfunTokenAction from "./actions/pumpfun/pumpfun.action";
         █████            █ █  ████████████████████  █  █   █    
         █████    █     █ █ █  ██OO███OO██BBBB█EEEE███  █   █   
         ████             ███ ██O██O█O██O█B██B█E██████  █    █  
-         █              █ █ ██O██O█O██O█BBBB█EEEE███  █ █   █  
+         █               █ █ ██O██O█O██O█BBBB█EEEE███  █ █   █  
          █               █ █ ██O██O█O██O█B██B█E██████    █   █  
           █      █████     █ ███OO███OO██BBBB█EEEE███    █   █  
           ██           █   █ █████████████████████████   █   █  
