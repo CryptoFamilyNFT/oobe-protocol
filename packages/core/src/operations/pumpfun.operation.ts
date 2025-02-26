@@ -1,8 +1,11 @@
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair, VersionedTransaction } from '@solana/web3.js';
 import { PumpfunLaunchResponse, PumpFunTokenOptions } from '../types/index.interfaces';
 import { Agent } from '../agent/Agents';
+import { log } from 'console';
+import Logger from '../utils/logger/logger';
 
 export class PumpfunOperation {
+    private logger: Logger = new Logger();
 
     async uploadMetadata(
         tokenName: string,
@@ -11,6 +14,7 @@ export class PumpfunOperation {
         imageUrl: string,
         options?: PumpFunTokenOptions,
     ): Promise<any> {
+        // Create metadata object
         const formData = new URLSearchParams();
         formData.append("name", tokenName);
         formData.append("symbol", tokenTicker);
@@ -27,19 +31,20 @@ export class PumpfunOperation {
             formData.append("website", options.website);
         }
 
+        console.log("[oobe-protocol] - Form Data: ", formData);
         const imageResponse = await fetch(imageUrl);
         const imageBlob = await imageResponse.blob();
-        const files = {
-            file: new File([imageBlob], "token_image.png", { type: "image/png" }),
-        };
+        const arrayBuffer = await imageBlob.arrayBuffer();
+        console.log("[oobe-protocol] - arrayBuffer: ", arrayBuffer);
+        const imageFile = new Blob([arrayBuffer], { type: imageBlob.type });
 
+        // Create form data with both metadata and file
         const finalFormData = new FormData();
+        // Add all metadata fields
         for (const [key, value] of formData.entries()) {
             finalFormData.append(key, value);
         }
-        if (files?.file) {
-            finalFormData.append("file", files.file);
-        }
+        finalFormData.append("file", imageFile, "image.png");
 
         const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
             method: "POST",
@@ -47,7 +52,8 @@ export class PumpfunOperation {
         });
 
         if (!metadataResponse.ok) {
-            throw new Error(`Metadata upload failed: ${metadataResponse.statusText}`);
+            this.logger.error(`Metadata upload failed: ${metadataResponse.statusText}`);
+            //throw new Error(`Metadata upload failed: ${metadataResponse.statusText}`);
         }
 
         return await metadataResponse.json();
@@ -60,7 +66,7 @@ export class PumpfunOperation {
         options?: PumpFunTokenOptions,
     ) {
         const payload = {
-            publicKey: agent.wallet_address,
+            publicKey: agent.walletAddress,
             action: "create",
             tokenMetadata: {
                 name: metadataResponse.metadata.name,
@@ -69,9 +75,9 @@ export class PumpfunOperation {
             },
             mint: mintKeypair.publicKey.toBase58(),
             denominatedInSol: "true",
-            amount: options?.initialLiquiditySOL || 0.0001,
+            amount: options?.initialLiquiditySOL || 0.03,
             slippage: options?.slippageBps || 5,
-            priorityFee: options?.priorityFee || 0.00005,
+            priorityFee: options?.priorityFee || 0.008,
             pool: "pump",
         };
 
@@ -85,7 +91,7 @@ export class PumpfunOperation {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Transaction creation failed: ${response.status} - ${errorText}`);
+            this.logger.error(`Transaction creation failed: ${response.status} - ${errorText}`);
         }
 
         return response;
@@ -95,38 +101,38 @@ export class PumpfunOperation {
         kit: Agent,
         tx: VersionedTransaction,
         mintKeypair: Keypair,
-    ) {
+    ): Promise<string | undefined> {
         if (kit.connection === null || kit.wallet === null) {
-            throw new Error("Agent not initialized: wallet and connection required");
+            this.logger.error(`Agent initialization failed: wallet and connection required`);
         }
         try {
-            const { blockhash, lastValidBlockHeight } = await kit.connection!.getLatestBlockhash();
+            let { blockhash, lastValidBlockHeight } = await kit.connection!.getLatestBlockhash();
+            ({ blockhash, lastValidBlockHeight } = await kit.connection!.getLatestBlockhash());
             tx.message.recentBlockhash = blockhash;
-            tx.sign([mintKeypair, kit.wallet!]);
+            tx.sign([mintKeypair, kit.wallet]);
 
-            const signature = await kit.connection!.sendTransaction(tx, {
+            let signature = await kit.connection!.sendTransaction(tx, {
                 skipPreflight: false,
                 preflightCommitment: "confirmed",
-                maxRetries: 5,
+                maxRetries: 2,
             });
 
-            const confirmation = await kit.connection!.confirmTransaction({
+            let status = await kit.connection!.confirmTransaction({
                 signature,
                 blockhash,
                 lastValidBlockHeight,
-            });
+            }, 'processed'); // Using 'processed' for minimum confirmation
 
-            if (confirmation.value.err) {
-                throw new Error(`Transaction failed: ${confirmation.value.err}`);
-            }
-
+            this.logger.info(`Transaction Signed and Confirmed: ${signature}`)
             return signature;
-        } catch (error) {
+        } catch (error:any) {
             console.error("Transaction send error:", error);
             if (error instanceof Error && "logs" in error) {
-                console.error("Transaction logs:", error.logs);
+                this.logger.error((error as any).logs);
+                console.error("Transaction logs:", (error as any).logs);
+                return undefined;
             }
-            throw error;
+            return undefined;
         }
     }
 
@@ -160,15 +166,17 @@ export class PumpfunOperation {
             const signature = await this.signAndSendTransaction(agent, tx, mintKeypair);
 
             return {
-                signature,
+                signature: signature ?? '',
                 mint: mintKeypair.publicKey.toBase58(),
                 metadataUri: metadataResponse.metadataUri,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error in launchPumpFunToken:", error);
             if (error instanceof Error && "logs" in error) {
+                this.logger.error((error as any).logs);
                 console.error("Transaction logs:", (error as any).logs);
             }
+            this.logger.error(error);
             throw error;
         }
     }

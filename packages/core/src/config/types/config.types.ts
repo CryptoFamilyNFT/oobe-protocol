@@ -1,3 +1,4 @@
+import { CoreTool } from "ai"
 import { IDatabaseConfig } from "../../types/db.interface"
 
 /**
@@ -28,7 +29,7 @@ export interface IOfficialEndpoint {
  */
 export interface ISolanaEndpoint {
     official: IOfficialEndpoint,
-    unOfficial: IUnofficialEndpoints[]
+    unOfficial?: IUnofficialEndpoints[]
 }
 
 
@@ -42,14 +43,22 @@ export interface ISolanaEndpoint {
  */
 export interface IConfiguration {
     solanaEndpoint: IOfficialEndpoint,
-    solanaUnofficialEndpoints: IUnofficialEndpoints[],
-    solanaExplorer: string,
-    memoryType: string,
-    dbConfig: IDatabaseConfig,
+    solanaUnofficialEndpoints?: IUnofficialEndpoints[],
+    solanaExplorer?: string,
+    memoryType?: string,
+    dbConfig?: IDatabaseConfig,
     private_key: string,
-    googleApiKey: string,
-    pollinationsApiUrl: string,
+    GOOGLE_API_KEY?: string,
+    pollinationsApiUrl?: string,
+    openAiKey: string,
+    oobeKey: string,
 }
+
+/**
+ * 
+ * extend Record<string, CoreTool> for SolanaTools
+ */
+export interface ISolanaTools extends Record<string, CoreTool> {}
 
 /**
  * 

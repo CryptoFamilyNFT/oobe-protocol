@@ -1,30 +1,10 @@
 import launchPumpfunTokenAction from "./pumpfun/pumpfun.action";
 import createImageAction from "./agent/agent.action";
 import balanceAction from "./solana/balance.action";
+import tokenDataAction from "./tokendata/tokenData";
 
 /*[---import type for action---]*/
 import { Action } from "../types/action.interface";
-
-
-
-/**
- * 
- * @type IActionsName
- * @description: Type for action name
- * * @author oobe-protocol
- */
-type IActionsName = string;
-
-/**
- * 
- * @type IActionsAgent
- * @description: Type for actions agent 
- * @author oobe-protocol
- */
-type IActionsAgent = {
-    action_name: IActionsName;
-    action: Action;
-}[];
 
 /**
  * 
@@ -65,6 +45,33 @@ const balanceSolanaAction: IActionsAgent = [
     }
 ]
 
+const tokenData: IActionsAgent = [
+    {
+        action_name: "balanceAction",
+        action: tokenDataAction,
+    }
+]
+
+/**
+ * 
+ * @type IActionsName
+ * @description: Type for action name
+ * * @author oobe-protocol
+ */
+export type IActionsName = string;
+
+/**
+ * 
+ * @type IActionsAgent
+ * @description: Type for actions agent 
+ * @author oobe-protocol
+ */
+export type IActionsAgent = {
+    action_name: IActionsName;
+    action: Action;
+}[];
+
+
 /**
  * 
  * @name Actions
@@ -75,7 +82,8 @@ const balanceSolanaAction: IActionsAgent = [
 export const Actions: IActionsAgent = [
     ...launchPumpfunToken,
     ...createImage,
-    ...balanceSolanaAction
+    ...balanceSolanaAction,
+    ...tokenData,
 ];
 
 export type StructuredToolInterface = {

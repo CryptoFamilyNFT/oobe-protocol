@@ -23,9 +23,5 @@ export default function verifyConfig(config: IConfiguration): boolean{
         throw new Error('[$oobe-protocol] - Missing Solana explorer URL configuration');
     }
 
-    if (!config.memoryType) {
-        throw new Error('[$oobe-protocol] - Missing memory type configuration');
-    }
-
     return true;
 }
