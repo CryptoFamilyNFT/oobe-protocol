@@ -15,8 +15,7 @@ export class SolanaOperations {
     constructor(endpoint: string = "https://api.mainnet-beta.solana.com", privateKey: string) {
         this.connection = new Connection(endpoint);
         this.logger = new Logger();
-        const privateKeyArray = new Uint8Array(Buffer.from(privateKey, 'hex'));
-        this.wallet = Keypair.fromSecretKey(privateKeyArray).publicKey;
+        this.wallet = Keypair.fromSecretKey(Uint8Array.from(bs58.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
     }
 

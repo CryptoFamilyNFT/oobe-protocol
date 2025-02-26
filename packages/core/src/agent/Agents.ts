@@ -10,6 +10,7 @@ import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { PumpfunLaunchResponse, PumpFunTokenOptions } from "../types/index.interfaces";
 import { PumpfunOperation } from "../operations/pumpfun.operation";
 import { PersonaImpl } from "./persona/Persona";
+import bs58 from "bs58";
 
 export class Agent {
     private solanaOps: SolanaOperations;
@@ -27,14 +28,8 @@ export class Agent {
         this.solanaOps = new SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
-        const privateKeyArray = new Uint8Array(Buffer.from(privateKey, 'hex'));
         this.walletAddress = "";
-        try {
-            this.wallet = Keypair.fromSecretKey(privateKeyArray);
-        } catch (error) {
-            const secretKey = Uint8Array.from(JSON.parse(privateKey));
-            this.wallet = Keypair.fromSecretKey(secretKey);
-        }
+        this.wallet = Keypair.fromSecretKey(Uint8Array.from(bs58.decode(privateKey)));
         this.actions = new Map();
         this.connection = this.solanaOps.getConnection();
     }

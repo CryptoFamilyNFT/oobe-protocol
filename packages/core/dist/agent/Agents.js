@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Agent = void 0;
 const solana_operation_1 = require("../operations/solana.operation");
@@ -9,21 +12,15 @@ const index_tool_1 = require("../config/tool/index.tool");
 const openai_1 = require("@langchain/openai");
 const pumpfun_operation_1 = require("../operations/pumpfun.operation");
 const Persona_1 = require("./persona/Persona");
+const bs58_1 = __importDefault(require("bs58"));
 class Agent {
     constructor(solanaEndpoint, privateKey, openKey, logger) {
         console.log(privateKey);
         this.solanaOps = new solana_operation_1.SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
-        const privateKeyArray = new Uint8Array(Buffer.from(privateKey, 'hex'));
         this.walletAddress = "";
-        try {
-            this.wallet = web3_js_1.Keypair.fromSecretKey(privateKeyArray);
-        }
-        catch (error) {
-            const secretKey = Uint8Array.from(JSON.parse(privateKey));
-            this.wallet = web3_js_1.Keypair.fromSecretKey(secretKey);
-        }
+        this.wallet = web3_js_1.Keypair.fromSecretKey(Uint8Array.from(bs58_1.default.decode(privateKey)));
         this.actions = new Map();
         this.connection = this.solanaOps.getConnection();
     }

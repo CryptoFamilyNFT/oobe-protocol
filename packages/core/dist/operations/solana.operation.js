@@ -7,13 +7,13 @@ exports.SolanaOperations = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const logger_1 = __importDefault(require("../utils/logger/logger"));
 const spl_token_1 = require("@solana/spl-token");
+const bs58_1 = __importDefault(require("bs58"));
 class SolanaOperations {
     constructor(endpoint = "https://api.mainnet-beta.solana.com", privateKey) {
         this.LAMPORTS_PER_SOL = 1000000000;
         this.connection = new web3_js_1.Connection(endpoint);
         this.logger = new logger_1.default();
-        const privateKeyArray = new Uint8Array(Buffer.from(privateKey, 'hex'));
-        this.wallet = web3_js_1.Keypair.fromSecretKey(privateKeyArray).publicKey;
+        this.wallet = web3_js_1.Keypair.fromSecretKey(Uint8Array.from(bs58_1.default.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
     }
     /**
