@@ -1,3 +1,7 @@
+import MerkleTree from "merkletreejs";
+import { ProofOfAction } from "./proofOfAction.interface";
+import { ProofOfEvidence } from "./proofOfEvidence.interface";
+import { ProofOfEvolution } from "./proofOfEvolution.interface";
 export interface IDatabaseConfig {
     host: string;
     port: number;
@@ -14,5 +18,49 @@ export interface IDatabaseConfig {
         migrationsDir: string;
         subscribersDir: string;
     };
+}
+export interface IPersona {
+    id: string;
+    name: string;
+    proofsOfAction: ProofOfAction[];
+    proofsOfEvidence: ProofOfEvidence[];
+    proofsOfEvolution: ProofOfEvolution[];
+    addProofOfAction(proof: ProofOfAction): void;
+    addProofOfEvidence(proof: ProofOfEvidence): void;
+    addProofOfEvolution(proof: ProofOfEvolution): void;
+    getProofs(): {
+        actions: ProofOfAction[];
+        evidences: ProofOfEvidence[];
+        evolutions: ProofOfEvolution[];
+    };
+    evolve(): void;
+    generateMerkleTree(): MerkleTree;
+    sendToDatabase(): Promise<void>;
+}
+export interface IProofOfAction {
+    id: string;
+    action: string;
+    timestamp: Date;
+}
+export interface IProofOfEvidence {
+    id: string;
+    evidence: string;
+    timestamp: Date;
+}
+export interface IProofOfEvolution {
+    id: string;
+    changes: string;
+    timestamp: Date;
+}
+export interface IMerkleTree {
+    root: string;
+    proofs: string[];
+}
+export interface PersonaData {
+    id: string;
+    name: string;
+    alias?: string;
+    image?: string;
+    publicKey?: string;
 }
 //# sourceMappingURL=db.interface.d.ts.map

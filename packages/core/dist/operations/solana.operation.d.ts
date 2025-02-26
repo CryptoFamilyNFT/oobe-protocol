@@ -1,12 +1,10 @@
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-import ConfigManager from '../config/default';
 export declare class SolanaOperations {
     private connection;
     private logger;
     private privateKey;
     readonly LAMPORTS_PER_SOL = 1000000000;
     readonly wallet: PublicKey;
-    configManager: ConfigManager;
     constructor(endpoint: string | undefined, privateKey: string);
     /**
      *

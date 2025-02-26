@@ -32,14 +32,11 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const prebuilt_1 = require("@langchain/langgraph/prebuilt");
 const __1 = require("..");
 const actions_1 = require("../actions");
-const default_1 = __importDefault(require("../config/default"));
+const default_1 = require("../config/default");
 const index_tool_1 = require("../config/tool/index.tool");
 const langgraph_1 = require("@langchain/langgraph");
 const readline = __importStar(require("readline"));
@@ -117,7 +114,7 @@ function main() {
     /**
      * Configure OOBE
      */
-    const configManager = new default_1.default();
+    const configManager = new default_1.ConfigManager();
     configManager.createDefaultConfig(process.env.PRIVATE_KEY || '', process.env.OPENAI_KEY || '', process.env.OOBE_KEY || '');
     const oobe = new __1.OobeCore(configManager.getDefaultConfig());
     oobe.start();

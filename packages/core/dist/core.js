@@ -10,6 +10,7 @@ const logger_1 = __importDefault(require("./utils/logger/logger"));
 const prebuilt_1 = require("@langchain/langgraph/prebuilt");
 const messages_1 = require("@langchain/core/messages");
 const langgraph_1 = require("@langchain/langgraph");
+const Persona_1 = require("./agent/persona/Persona");
 /**
                                ..................
                         ............. .................
@@ -54,7 +55,7 @@ class OobeCore {
     constructor(config) {
         this.logger = new logger_1.default();
         if ((0, verifyConfig_1.default)(config)) {
-            this.agent = new Agents_1.Agent(config.solanaEndpoint, config.private_key, config.oobeKey);
+            this.agent = new Agents_1.Agent(config.solanaEndpoint, config.private_key, config.openAiKey, this.logger);
         }
         else {
             this.logger.error("Invalid configuration");
@@ -64,7 +65,6 @@ class OobeCore {
     }
     async start() {
         try {
-            //this.logger.showAsciiOOBE();
             await this.agent.initialize();
             this.logger.success("OOBE CORE - started successfully!");
         }
@@ -72,28 +72,27 @@ class OobeCore {
             this.logger.error(`Error starting OobeCore: ${error}`);
         }
     }
-    async CreateOobeAgent(genAi, tools, memory, messageModifier) {
+    async CreatePersona(name, age, socials) {
         try {
-            return (0, prebuilt_1.createReactAgent)({
-                llm: genAi,
-                tools: tools,
-                checkpointSaver: memory,
-                messageModifier: messageModifier
-            });
+            const persona = new Persona_1.PersonaImpl("defaultId", "Agent Persona");
+            persona.generateMerkleTree();
         }
         catch (error) {
-            this.logger.error(`Error stopping CreateOobeAgent: ${error}`);
-            return null;
+            this.logger.error(`Error on CreatePersona: ${error}`);
+            return;
         }
     }
-    async AccessMemory() {
-        try {
-            return this.memory;
-        }
-        catch (error) {
-            this.logger.error(`Error on CreateMemory: ${error}`);
-            return null;
-        }
+    CreateOobeAgent(name, age, socials, genAi, tools, memory, messageModifier) {
+        this.CreatePersona(name, age, socials);
+        return (0, prebuilt_1.createReactAgent)({
+            llm: genAi,
+            tools: tools,
+            checkpointSaver: memory,
+            messageModifier: messageModifier
+        });
+    }
+    AccessMemory() {
+        return this.memory;
     }
     AgentHumanMessage(userInput) {
         return new messages_1.HumanMessage(userInput);

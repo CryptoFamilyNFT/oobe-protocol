@@ -32,4 +32,5 @@ __exportStar(require("./utils/actionExec"), exports);
 __exportStar(require("./utils/createTools"), exports);
 __exportStar(require("./utils/helpers/verifyConfig"), exports);
 __exportStar(require("./utils/logger/logger"), exports);
+__exportStar(require("./config/default"), exports);
 //# sourceMappingURL=index.js.map

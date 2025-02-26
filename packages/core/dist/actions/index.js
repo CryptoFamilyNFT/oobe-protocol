@@ -8,6 +8,7 @@ const pumpfun_action_1 = __importDefault(require("./pumpfun/pumpfun.action"));
 const agent_action_1 = __importDefault(require("./agent/agent.action"));
 const balance_action_1 = __importDefault(require("./solana/balance.action"));
 const tokenData_1 = __importDefault(require("./tokendata/tokenData"));
+const p_evalutate_action_1 = __importDefault(require("./persona/p_evalutate.action"));
 /**
  *
  * @name launchPumpfunToken
@@ -18,6 +19,18 @@ const launchPumpfunToken = [
     {
         action_name: "launchPumpfunToken",
         action: pumpfun_action_1.default,
+    },
+];
+/**
+ *
+ * @name personaAwareness
+ * @description: Launch Pumpfun Token action
+ * @author oobe-protocol
+ */
+const personaAwareness = [
+    {
+        action_name: "launchPumpfunToken",
+        action: p_evalutate_action_1.default,
     },
 ];
 /**
@@ -61,5 +74,6 @@ exports.Actions = [
     ...createImage,
     ...balanceSolanaAction,
     ...tokenData,
+    ...personaAwareness,
 ];
 //# sourceMappingURL=index.js.map

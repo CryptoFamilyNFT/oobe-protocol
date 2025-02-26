@@ -1,11 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const zod_1 = require("zod");
 const createImage_1 = require("../../config/tool/agent/createImage");
-const default_1 = __importDefault(require("../../config/default"));
+const default_1 = require("../../config/default");
 const createImageAction = {
     name: "CREATE_IMAGE",
     similes: [
@@ -60,7 +57,7 @@ const createImageAction = {
             .describe("The style of the generated image"),
     }),
     handler: async (agent, input) => {
-        const defaultConfig = new default_1.default().getDefaultConfig();
+        const defaultConfig = new default_1.ConfigManager().getDefaultConfig();
         try {
             if (!defaultConfig.openAiKey) {
                 return {

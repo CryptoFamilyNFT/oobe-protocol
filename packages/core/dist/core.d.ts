@@ -4,6 +4,7 @@ import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { HumanMessage } from "@langchain/core/messages";
 import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { MemorySaver } from "@langchain/langgraph";
+import { ISocials } from "./types/core.interface";
 /**
                                ..................
                         ............. .................
@@ -50,7 +51,8 @@ export declare class OobeCore {
     private memory;
     constructor(config: IConfiguration);
     start(): Promise<void>;
-    CreateOobeAgent(genAi: ChatOpenAI<ChatOpenAICallOptions>, tools: any | ToolNode<any>, memory: MemorySaver, messageModifier: any): Promise<import("@langchain/langgraph").CompiledStateGraph<import("@langchain/langgraph").StateType<{
+    private CreatePersona;
+    CreateOobeAgent(name: string, age: number, socials: ISocials | null, genAi: ChatOpenAI<ChatOpenAICallOptions>, tools: any | ToolNode<any>, memory: MemorySaver, messageModifier: any): import("@langchain/langgraph").CompiledStateGraph<import("@langchain/langgraph").StateType<{
         messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
     }>, import("@langchain/langgraph").UpdateType<{
         messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
@@ -65,8 +67,8 @@ export declare class OobeCore {
         };
     } & {
         messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
-    }, import("@langchain/langgraph").StateDefinition> | null>;
-    AccessMemory(): Promise<MemorySaver | null>;
+    }, import("@langchain/langgraph").StateDefinition>;
+    AccessMemory(): MemorySaver;
     AgentHumanMessage(userInput: string): HumanMessage;
     stop(): Promise<void>;
     getAgent(): Agent;

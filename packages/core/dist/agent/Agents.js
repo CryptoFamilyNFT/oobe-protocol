@@ -1,30 +1,31 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Agent = void 0;
 const solana_operation_1 = require("../operations/solana.operation");
-const logger_1 = __importDefault(require("../utils/logger/logger"));
 // import { IModeStart } from "../types/index.interfaces"; // Removed unused import
 const web3_js_1 = require("@solana/web3.js");
 // import { create } from "ts-node"; // Removed unused import
 const index_tool_1 = require("../config/tool/index.tool");
-const bs58_1 = __importDefault(require("bs58"));
 const openai_1 = require("@langchain/openai");
 const pumpfun_operation_1 = require("../operations/pumpfun.operation");
-const default_1 = __importDefault(require("../config/default"));
+const Persona_1 = require("./persona/Persona");
 class Agent {
-    constructor(solanaEndpoint, privateKey, oobeKey) {
+    constructor(solanaEndpoint, privateKey, openKey, logger) {
+        console.log(privateKey);
         this.solanaOps = new solana_operation_1.SolanaOperations(solanaEndpoint.rpc, privateKey);
-        //this.GOOGLE_API_KEY = DEFAULT_CONFIG.GOOGLE_API_KEY;
-        this.OPEN_AI_KEY = new default_1.default().getDefaultConfig().openAiKey;
-        this.logger = new logger_1.default();
+        this.OPEN_AI_KEY = openKey;
+        this.logger = logger;
+        const privateKeyArray = new Uint8Array(Buffer.from(privateKey, 'hex'));
         this.walletAddress = "";
-        this.wallet = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(privateKey));
+        try {
+            this.wallet = web3_js_1.Keypair.fromSecretKey(privateKeyArray);
+        }
+        catch (error) {
+            const secretKey = Uint8Array.from(JSON.parse(privateKey));
+            this.wallet = web3_js_1.Keypair.fromSecretKey(secretKey);
+        }
         this.actions = new Map();
         this.connection = this.solanaOps.getConnection();
-        this.oobeKey = oobeKey;
     }
     async initialize() {
         try {
@@ -35,6 +36,9 @@ class Agent {
         catch (error) {
             this.logger.error(`Error initializing agent: ${error}`);
         }
+    }
+    async createPersona(name) {
+        return new Persona_1.PersonaImpl("defaultId", name);
     }
     async initOpenAiAuth() {
         Agent.open_ai = new openai_1.ChatOpenAI({
@@ -52,9 +56,7 @@ class Agent {
     }
     async verifyInitialization() {
         try {
-            if (!this.oobeKey || this.oobeKey === Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)) {
-                this.logger.error("OOBE key not initialized");
-            }
+            //const auth = await this.authenticate();
             if (!this.wallet) {
                 this.logger.error("Wallet not initialized!");
             }
@@ -110,7 +112,7 @@ class Agent {
         }
         return await action.handler(this, input);
     }
-    async genAi() {
+    genAi() {
         return Agent.open_ai;
     }
     async getOobeAgent() {

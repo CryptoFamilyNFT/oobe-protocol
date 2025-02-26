@@ -16,4 +16,5 @@ export * from './utils/actionExec';
 export * from './utils/createTools';
 export * from './utils/helpers/verifyConfig';
 export * from './utils/logger/logger';
+export * from './config/default';
 //# sourceMappingURL=index.d.ts.map
