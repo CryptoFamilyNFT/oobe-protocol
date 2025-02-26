@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getActionExamples = exports.executeAction = exports.findAction = void 0;
+exports.findAction = findAction;
+exports.executeAction = executeAction;
+exports.getActionExamples = getActionExamples;
 const actions_1 = require("../actions");
 /**
  * Find an action by its name or one of its similes
@@ -10,7 +12,6 @@ function findAction(query) {
     return Object.values(actions_1.Actions.map((n) => n.action)).find((action) => action.name.toLowerCase() === normalizedQuery ||
         action.similes.some((simile) => simile.toLowerCase() === normalizedQuery));
 }
-exports.findAction = findAction;
 /**
  * Execute an action with the given input
  */
@@ -42,7 +43,6 @@ async function executeAction(action, agent, input) {
         };
     }
 }
-exports.executeAction = executeAction;
 /**
  * Get examples for an action
  */
@@ -57,5 +57,4 @@ Explanation: ${example.explanation}
     })
         .join("\n");
 }
-exports.getActionExamples = getActionExamples;
 //# sourceMappingURL=actionExec.js.map

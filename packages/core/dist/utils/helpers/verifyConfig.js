@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = verifyConfig;
 /**
  * @name verifyConfig
  * @alias OOBEverifyConfig
@@ -21,5 +22,4 @@ function verifyConfig(config) {
     }
     return true;
 }
-exports.default = verifyConfig;
 //# sourceMappingURL=verifyConfig.js.map

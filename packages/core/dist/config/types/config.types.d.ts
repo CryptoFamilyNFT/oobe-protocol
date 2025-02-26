@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 import { CoreTool } from "ai";
 import { IDatabaseConfig } from "../../types/db.interface";
 /**

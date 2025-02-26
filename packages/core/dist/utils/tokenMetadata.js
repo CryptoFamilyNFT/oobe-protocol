@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTokenMetadata = void 0;
+exports.getTokenMetadata = getTokenMetadata;
 const web3_js_1 = require("@solana/web3.js");
 async function getTokenMetadata(connection, tokenMint) {
     const METADATA_PROGRAM_ID = new web3_js_1.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
@@ -63,5 +63,4 @@ async function getTokenMetadata(connection, tokenMint) {
         creators,
     };
 }
-exports.getTokenMetadata = getTokenMetadata;
 //# sourceMappingURL=tokenMetadata.js.map

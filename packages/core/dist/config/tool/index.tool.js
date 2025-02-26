@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSolanaTools = void 0;
+exports.createSolanaTools = createSolanaTools;
 const createImage_tool_1 = require("./agent/createImage.tool");
 const createTokenPF_1 = require("./pumpfun/createTokenPF");
 const balance_tool_1 = require("./solana/balance.tool");
@@ -19,5 +19,4 @@ async function createSolanaTools(agent) {
         new createImage_tool_1.SolanaCreateImageTool(agent),
     ];
 }
-exports.createSolanaTools = createSolanaTools;
 //# sourceMappingURL=index.tool.js.map

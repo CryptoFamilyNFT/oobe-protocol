@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertLangModelAgent = void 0;
+exports.convertLangModelAgent = convertLangModelAgent;
 /**
  * @name convertLangModelAgent
  * @description Convert the agent to a language model
@@ -22,5 +22,4 @@ function convertLangModelAgent(agent) {
         }
     };
 }
-exports.convertLangModelAgent = convertLangModelAgent;
 //# sourceMappingURL=convertLangModel.js.map

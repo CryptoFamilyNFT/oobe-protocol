@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.create_image = void 0;
+exports.create_image = create_image;
 const openai_1 = __importDefault(require("openai"));
 const logger_1 = __importDefault(require("../../../utils/logger/logger"));
 /**
@@ -37,5 +37,4 @@ async function create_image(agent, prompt, size = "1024x1024", n = 1) {
         throw new Error(`Image generation failed: ${error.message}`);
     }
 }
-exports.create_image = create_image;
 //# sourceMappingURL=createImage.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports._createSolanaTools = void 0;
+exports._createSolanaTools = _createSolanaTools;
 const ai_1 = require("ai");
 const actionExec_1 = require("../utils/actionExec");
 const actions_1 = require("../actions");
@@ -22,7 +22,7 @@ function _createSolanaTools(agent) {
         const action = allActionsItineraries[Number(key)];
         tools[key] = (0, ai_1.tool)({
             // @ts-expect-error Value matches type however TS still shows error
-            id: `action.${action.action_name}`,
+            id: `action.${action.action_name}`, // Ensure the id is in the format `${string}.${string}`
             description: `
                 ${action.description}
 
@@ -38,5 +38,4 @@ function _createSolanaTools(agent) {
     }
     return tools;
 }
-exports._createSolanaTools = _createSolanaTools;
 //# sourceMappingURL=createTools.js.map

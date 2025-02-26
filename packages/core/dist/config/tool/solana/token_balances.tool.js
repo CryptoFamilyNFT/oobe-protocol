@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SolanaTokenBalances = void 0;
+exports.SolanaTokenBalances = SolanaTokenBalances;
 const web3_js_1 = require("@solana/web3.js");
 const spl_token_1 = require("@solana/spl-token");
 const tokenMetadata_1 = require("../../../utils/tokenMetadata");
@@ -35,5 +35,4 @@ async function SolanaTokenBalances(agent, walletAddress) {
         tokens: tokenBalances,
     };
 }
-exports.SolanaTokenBalances = SolanaTokenBalances;
 //# sourceMappingURL=token_balances.tool.js.map

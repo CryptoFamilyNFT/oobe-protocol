@@ -54,7 +54,18 @@ export declare class OobeCore {
         messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
     }>, import("@langchain/langgraph").UpdateType<{
         messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
-    }>, "tools" | "__start__" | "agent", any, any, import("@langchain/langgraph").StateDefinition> | null>;
+    }>, any, {
+        messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
+    }, {
+        messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
+        structuredResponse: {
+            (): import("@langchain/langgraph").LastValue<Record<string, any>>;
+            (annotation: import("@langchain/langgraph").SingleReducer<Record<string, any>, Record<string, any>>): import("@langchain/langgraph").BinaryOperatorAggregate<Record<string, any>, Record<string, any>>;
+            Root: <S extends import("@langchain/langgraph").StateDefinition>(sd: S) => import("@langchain/langgraph").AnnotationRoot<S>;
+        };
+    } & {
+        messages: import("@langchain/langgraph").BinaryOperatorAggregate<import("@langchain/core/messages").BaseMessage[], import("@langchain/langgraph").Messages>;
+    }, import("@langchain/langgraph").StateDefinition> | null>;
     AccessMemory(): Promise<MemorySaver | null>;
     AgentHumanMessage(userInput: string): HumanMessage;
     stop(): Promise<void>;

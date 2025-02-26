@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.typewriterEffect = void 0;
+exports.typewriterEffect = typewriterEffect;
 /**
  * @name typewriterEffect
  * @description Simula un effetto macchina da scrivere con glitch e un cursore lampeggiante
@@ -31,5 +31,4 @@ function typewriterEffect(text, speed = 100, glitchChance = 0.1) {
         }
     }, speed);
 }
-exports.typewriterEffect = typewriterEffect;
 //# sourceMappingURL=loggerEffects.js.map
