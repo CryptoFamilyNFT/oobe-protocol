@@ -58,6 +58,7 @@
     "form-data": "^4.0.1",
     "fs": "0.0.1-security",
     "inquirer": "^12.3.3",
+    "jimp": "^1.6.0",
     "langchain": "^0.3.8",
     "merkletreejs": "^0.5.1",
     "mysql2": "^3.12.0",
@@ -68,6 +69,7 @@
     "ts-node": "^10.9.2",
     "typedoc": "^0.27.6",
     "typeorm": "^0.3.20",
+    "zlib": "^1.0.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

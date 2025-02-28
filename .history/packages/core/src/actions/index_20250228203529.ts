@@ -107,7 +107,6 @@ export const Actions: IActionsAgent = [
     ...balanceSolanaAction,
     ...tokenData,
     ...personaAwareness,
-    ...iqIscription
 ];
 
 export type StructuredToolInterface = {
