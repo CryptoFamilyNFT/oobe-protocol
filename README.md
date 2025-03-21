@@ -15,180 +15,171 @@ Follow us on social media for the latest updates:
 The OOBE Protocol SDK is a framework designed to build and manage Solana-based AI agents. It supports advanced features for conversational memory, parallel function calls, smart tool selection, and message history tracking using databases like MongoDB or Redis. This SDK is the core component for developing AI agents on the Solana blockchain, combining the power of AI with blockchain technology.
 
 ### Features
-- **AI Agent Persona**: Manage different AI agent personas with conversational memory and smart tool usage.
+-[IN-PROGRESS] **AI Agent Persona**: Manage different AI agent personas with conversational memory and smart tool usage.
 - **Solana Integration**: Leverage the Solana blockchain for decentralized applications.
 - **Parallel Function Calls**: Execute multiple functions simultaneously for increased efficiency.
 - **Message History**: Track and store message history to build intelligent agents with memory.
-- **Database Support**: Integrates with MongoDB and Redis for memory management.
+-[IN-PROGRESS] **Database Support**: Integrates with MongoDB and Redis for memory management.
+
+AI Agents: Capable of conversational memory, decision-making, and seamless tool integration.
+
+Decentralized Application (DApp): Web3 App to manage your agents in a simple UI [oobe].
+
+Customizable AI Personas: Tailored to specific use cases, from customer support to automated trading.
+
+NFT Collections: Facilitating the creation and management of unique digital assets.
+
+Futures Trading: Using the Adrena protocol to execute advanced trading strategies.
+
+SPL Tokens and PumpFun Tokens: Simplifying the creation of on-chain assets.
+
+Market Making and Volume Functionality: Enabling dynamic market strategies and volume optimization.
+
+Real-time Code Exec: Enhance the ability to execute real-time code based on Zod schemas.
+
+Additionally, the protocol supports all on-chain functions available on Solana, making it a comprehensive tool for blockchain integration.
+
+## Protocol Structure
+The OOBE Protocol is divided into three core modules:
+
+- **Core**: The foundational module, exclusively integrated with OOBE’s proprietary technology. It serves as the central hub for all protocol functionalities.
+- **Desktop**: Designed for backend applications, this module supports development with Node.js, offering robust capabilities for server-side implementations.
+- **React**: A frontend module tailored for integrating OOBE Protocol seamlessly into web applications.
+
+## Who is this for?
+OOBE Protocol is designed for:
+
+- **Blockchain Developers**: Building decentralized apps with AI components.
+- **AI Enthusiasts**: Creating intelligent systems with ease.
+- **Innovators**: Merging AI and blockchain for revolutionary solutions.
+
+## What is OOBE Protocol?
+OOBE Protocol is an SDK developed to provide a straightforward and secure interface for interacting with the OOBE ecosystem for creating and managing AI Agents on-chain. It consists of three packages: **core, desktop, and react**.
+
+## Solana Network Configuration for Application Setup
+This document describes the initial setup process for configuring network settings in a Solana-based application. Following these guidelines ensures that your application environment is prepared correctly with the necessary configurations.
+
+By default, configuration constants include pre-set values. However, you can customize these defaults using the `createDefaultConfig` method from the `ConfigManager` class. This function allows you to tailor the configuration by providing specific values for `privateKey`, `openAiKey`, `oobeKey`, and optionally `solanaEndpoint`, `solanaUnofficialEndpoints`, and `solanaExplorer`. It returns an `IConfiguration` object with your specified values or the default ones if none are provided.
+
+### Configuration Manager Implementation
+```typescript
+import { IConfiguration, IOfficialEndpoint, ISolanaEndpoint, IUnofficialEndpoints } from "./types/config.types";
+
+class ConfigManager {
+    private endpointsConfig: ISolanaEndpoint;
+    private defaultConfig: IConfiguration;
+
+    constructor() {
+        this.endpointsConfig = {
+            official: {
+                rpc: "https://api.mainnet-beta.solana.com"
+            },
+            unOfficial: [
+                {
+                    name: "GenesysGo",
+                    rpc: "https://ssc-dao.genesysgo.net",
+                },
+                {
+                    name: "Project Serum",
+                    rpc: "https://solana-api.projectserum.com",
+                },
+                {
+                    name: "Triton",
+                    rpc: "https://rpc.triton.one",
+                }
+            ]
+        };
+
+        this.defaultConfig = {
+            solanaEndpoint: this.endpointsConfig.official as IOfficialEndpoint,
+            solanaUnofficialEndpoints: this.endpointsConfig.unOfficial as IUnofficialEndpoints[],
+            solanaExplorer: "https://explorer.solana.com",
+            private_key: process.env.PRIVATE_KEY ?? "",
+            openAiKey: process.env.OPENAI_KEY ?? "",
+        };
+    }
+
+    public createEndpointsConfig(officialRpc?: string, unofficialEndpoints?: { name: string, rpc: string }[]): ISolanaEndpoint {
+        return {
+            official: {
+                rpc: officialRpc || this.endpointsConfig.official.rpc
+            },
+            unOfficial: unofficialEndpoints || this.endpointsConfig.unOfficial
+        } as ISolanaEndpoint;
+    }
+
+    public createDefaultConfig(
+        privateKey: string,
+        openAiKey: string,
+        solanaEndpoint?: IOfficialEndpoint,
+        solanaUnofficialEndpoints?: IUnofficialEndpoints[],
+        solanaExplorer?: string,
+    ): IConfiguration {
+        return {
+            solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
+            solanaUnofficialEndpoints: solanaUnofficialEndpoints ?? this.endpointsConfig.unOfficial ?? [],
+            solanaExplorer: solanaExplorer ?? this.defaultConfig.solanaExplorer ?? "",
+            private_key: privateKey,
+            openAiKey: openAiKey,
+        };
+    }
+
+    public getDefaultConfig(): IConfiguration {
+        return this.defaultConfig;
+    }
+
+    public setDefaultConfig(config: IConfiguration): void {
+        this.defaultConfig = config;
+    }
+}
+```
+
+## OobeCore Initialization and Usage
+The `OobeCore` class is a central component in our project, responsible for managing the core functionalities of the `oobe-protocol` system.
+
+### Initialization
+```typescript
+import { OobeCore, configManager, IConfiguration } from "oobe-protocol";
+
+const config: IConfiguration = {...}
+
+const overrideDefConfig = configManager.createDefaultConfig(config);
+  
+const oobe = new OobeCore(configManager.getDefaultConfig()) || new OobeCore(overrideDefConfig);
+```
+
+### Usage
+
+#### Starting OobeCore
+```typescript
+await oobe.start();
+```
+
+#### Creating an Oobe Agent
+```typescript
+const oobeAgent = await oobe.CreateOobeAgent(genAi, tools, memory, messageModifier);
+```
+
+#### Accessing Memory
+```typescript
+const memorySaver = await oobe.AccessMemory();
+```
+
+#### Sending a Human Message
+```typescript
+oobe.AgentHumanMessage("Find a good ticker with a good marketcap and traded til 10k tp");
+```
+
+#### Stopping OobeCore
+```typescript
+await oobe.stop();
+```
+
+#### Getting the Agent
+```typescript
+const agent = await oobe.getAgent();
+```
+
+## Learn More
+For a complete guide, visit our GitBook: [OOBE Protocol GitBook](https://oobe-protocol.gitbook.io/oobe-protocol/getting-started/quickstart/initializing-the-core-module)
 
----
-
-## Installation
-
-### Prerequisites
-
-- Node.js (>= 14.0)
-- TypeScript
-- Solana Web3.js
-- MongoDB or Redis (optional, for memory management)
-- Git (for version control)
-
-### Steps to Set Up
-
-1. **Clone the Repository**
-
-   First, clone this repository to your local machine:
-
-   ```bash
-   git clone https://github.com/yourusername/oobe-protocol.git
-
-
-2. **Change to the project directory:**
-   
-   Navigate to the Project Directory
-
-   ```bash
-   cd oobe-protocol
-
-3. **Install Dependencies**
-Install all required dependencies using npm or yarn:
-
-   ```npm install```
-
-   or
-
-   ```yarn install```
-
-4. **Set Up Solana Configuration** (optional)
-
-If you have Solana CLI installed can follow the instructions here to  configure your Solana environment:
-
-```solana config set --url https://api.mainnet-beta.solana.com```
-
-5. **Configure MongoDB or Redis**
-
-If you plan to use MongoDB or Redis for memory management, make sure you have the respective services running and set up the configuration in the ```./packages/core/src/config/default.ts``` file.
-
-6. **Start the Application**
-
-You can now start your development server or run your application using:
-
-```npm start```
-
-## Usage
-
-### Creating a Solana Agent
-
-To create a Solana Agent, follow these steps:
-
-1. **Import SolanaWeb3 in your TypeScript project:**
-
-    ```typescript
-    import { Connection, PublicKey } from '@solana/web3.js';
-    ```
-
-2. **Connect to Solana Network:**
-
-    Set up a connection to the Solana blockchain using the `Connection` class:
-
-    ```typescript
-    const connection = new Connection('https://api.mainnet-beta.solana.com');
-    ```
-
-3. **Create an Agent with Memory:**
-
-    Use the provided SDK functions to create an AI agent with memory and other features:
-
-    ```typescript
-    //soon
-    ```
-
-4. **Execute Commands:**
-
-    Interact with the agent by calling different functions based on your needs:
-
-    ```typescript
-    //soon
-    ```
-
-5. **Monitor Transactions:**
-
-    The SDK allows you to monitor transactions on Solana and track movements of whales (large accounts):
-
-    ```typescript
-    //soon
-    ```
-
-6. **Example Output:**
-
-    The SDK will return transaction data, including signatures, transaction details, and more, which can be used to track whale movements and optimize mev strategies on wallet integration user.
-
-### Git Integration
-
-1. **Initialize Git:**
-
-    To initialize the Git repository for your project:
-
-    Navigate to your project directory:
-
-    ```sh
-    cd /path/to/your/project
-    ```
-
-    Initialize Git:
-
-    ```sh
-    git init
-    ```
-
-    Add all files to the repository:
-
-    ```sh
-    git add .
-    ```
-
-    Commit the changes:
-
-    ```sh
-    git commit -m "Initial commit"
-    ```
-
-2. **Add a Remote Repository:**
-
-    Create a repository on GitHub or GitLab.
-
-    Link the remote repository:
-
-    ```sh
-    git remote add origin https://github.com/yourusername/your-repo.git
-    ```
-
-    Push the changes to GitHub:
-
-    ```sh
-    git push -u origin master
-    ```
-
-### Contributing
-
-We welcome contributions to the OOBE Protocol SDK. If you would like to contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes.
-4. Push to your forked repository.
-5. Create a pull request.
-
-### License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-### Acknowledgements
-
-- Solana Web3.js
-- MongoDB
-- Redis
-- TypeScript
-
-
-@oobe-protocol
