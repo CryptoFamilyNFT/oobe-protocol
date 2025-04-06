@@ -36,7 +36,7 @@ export declare class SolanaOperations {
      */
     /**
  * Transfer SOL or SPL tokens to a recipient
- * @param agent SolanaAgentKit instance
+ * @param agent Agent instance
  * @param to Recipient's public key
  * @param amount Amount to transfer
  * @param mint Optional mint address for SPL tokens
@@ -79,7 +79,7 @@ export declare class SolanaOperations {
     getConnection(): Connection;
     /**
      * Close Empty SPL Token accounts of the agent
-     * @param agent SolanaAgentKit instance
+     * @param agent Agent instance
      * @returns transaction signature and total number of accounts closed
      */
     closeEmptyTokenAccounts(): Promise<{
@@ -88,7 +88,7 @@ export declare class SolanaOperations {
     } | undefined>;
     /**
      * creates the close instuctions of a spl token account
-     * @param agnet SolanaAgentKit instance
+     * @param agnet Agent instance
      * @param token_program Token Program Id
      * @returns close instuction array
      */

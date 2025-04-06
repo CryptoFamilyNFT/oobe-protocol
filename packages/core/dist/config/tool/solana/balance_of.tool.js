@@ -25,7 +25,7 @@ class SolanaBalanceOtherTool extends tools_1.Tool {
             const balance = await this.agent.getBalanceOf(new web3_js_1.PublicKey(walletAddress), tokenPubKey);
             return JSON.stringify({
                 status: "success",
-                balance,
+                balance: balance / (10 ** 9),
                 wallet: walletAddress,
                 token: tokenAddress || "SOL",
             });

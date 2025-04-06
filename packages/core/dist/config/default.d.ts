@@ -7,7 +7,7 @@ export declare class ConfigManager {
         name: string;
         rpc: string;
     }[]): ISolanaEndpoint;
-    createDefaultConfig(privateKey: string, openAiKey: string, oobeKey: string, solanaEndpoint?: IOfficialEndpoint, solanaUnofficialEndpoints?: IUnofficialEndpoints[], solanaExplorer?: string): IConfiguration;
+    createDefaultConfig(privateKey: string, openAiKey: string, oobeKey: string, solanaEndpoint?: IOfficialEndpoint, solanaUnofficialEndpoints?: IUnofficialEndpoints[], solanaExplorer?: string, merkleDbSeed?: string, merkleRootSeed?: string): IConfiguration;
     getDefaultConfig(): IConfiguration;
     setDefaultConfig(config: IConfiguration): void;
 }

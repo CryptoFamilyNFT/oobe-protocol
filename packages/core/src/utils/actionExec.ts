@@ -1,6 +1,7 @@
 import { Agent } from "../agent/Agents";
 import { Actions } from "../actions";
 import { Action } from "../types/action.interface";
+import { merkleValidator } from "./merkleValidator";
 
 /**
  * Find an action by its name or one of its similes

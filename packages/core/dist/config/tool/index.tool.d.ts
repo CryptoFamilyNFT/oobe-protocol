@@ -1,10 +1,27 @@
 import { Agent } from "../../agent/Agents";
+import { PerpCloseTradeTool } from "./adrena/close_perp.tool";
+import { PerpOpenTradeTool } from "./adrena/open_perp.tool";
 import { SolanaCreateImageTool } from "./agent/createImage.tool";
+import { SolanaIQImageTool } from "./iq/IQimageInscription.tool";
+import { SolanaIQTextTool } from "./iq/IQTextInscription.tool";
+import { JupiterBuyTokenTool } from "./jup/buyTokenJup";
+import { JupiterSellTokenTool } from "./jup/sellTokenJup";
+import { createToken2022Tool } from "./oobe/token_2022.tool";
+import { orcaCreateClmm } from "./orca/orca_create_clmm.tool";
+import { orcaCreateSsLp } from "./orca/orca_create_ss_lp";
+import { orcaFetchPositionTool } from "./orca/orca_fetch_position.tool";
+import { orcaClosePositionTool } from "./orca/orca_pos_close.tool";
 import { SolanaPumpfunTokenLaunchTool } from "./pumpfun/createTokenPF";
+import { RaydiumBuyTokenTool } from "./ray/buyTokenRay";
+import { RaydiumSellTokenTool } from "./ray/sellTokenRay";
 import { SolanaBalanceTool } from "./solana/balance.tool";
+import { balanceAllTokensOwnedTool } from "./solana/balance_all.tool";
 import { SolanaBalanceOtherTool } from "./solana/balance_of.tool";
+import { CheckTokensRugTool } from "./solana/check_tokens.tool";
 import { SolanaCloseEmptyTokenAccounts } from "./solana/close_empty_account.tool";
+import { FetchAgentKeypair } from "./solana/fetch_agent_wallet";
 import { SolanaTPSCalculatorTool } from "./solana/tps.tool";
 import { SolanaTransferTool } from "./solana/transfer.tool";
-export declare function createSolanaTools(agent: Agent): Promise<(SolanaCreateImageTool | SolanaPumpfunTokenLaunchTool | SolanaBalanceTool | SolanaBalanceOtherTool | SolanaCloseEmptyTokenAccounts | SolanaTPSCalculatorTool | SolanaTransferTool)[]>;
+import { BufferInputTool } from "./utils/bufferInput.tool";
+export declare function createSolanaTools(agent: Agent): Promise<(PerpCloseTradeTool | PerpOpenTradeTool | SolanaCreateImageTool | SolanaIQImageTool | SolanaIQTextTool | JupiterBuyTokenTool | JupiterSellTokenTool | createToken2022Tool | orcaCreateClmm | orcaCreateSsLp | orcaFetchPositionTool | orcaClosePositionTool | SolanaPumpfunTokenLaunchTool | RaydiumBuyTokenTool | RaydiumSellTokenTool | SolanaBalanceTool | balanceAllTokensOwnedTool | SolanaBalanceOtherTool | CheckTokensRugTool | SolanaCloseEmptyTokenAccounts | FetchAgentKeypair | SolanaTPSCalculatorTool | SolanaTransferTool | BufferInputTool)[]>;
 //# sourceMappingURL=index.tool.d.ts.map

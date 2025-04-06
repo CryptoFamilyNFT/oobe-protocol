@@ -13,7 +13,7 @@ export class SolanaOperations {
     public readonly wallet: PublicKey
 
     constructor(endpoint: string = "https://api.mainnet-beta.solana.com", privateKey: string) {
-        this.connection = new Connection(endpoint);
+        this.connection = new Connection(`https://withered-stylish-hill.solana-mainnet.quiknode.pro/3a015c2e56d1c88b224692f5c9d987b37adc1a32/`);
         this.logger = new Logger();
         this.wallet = Keypair.fromSecretKey(Uint8Array.from(bs58.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
@@ -34,6 +34,9 @@ export class SolanaOperations {
             return false;
         }
     }
+
+    
+
 
     /**
      * 
@@ -98,7 +101,7 @@ export class SolanaOperations {
      */
     /**
  * Transfer SOL or SPL tokens to a recipient
- * @param agent SolanaAgentKit instance
+ * @param agent Agent instance
  * @param to Recipient's public key
  * @param amount Amount to transfer
  * @param mint Optional mint address for SPL tokens
@@ -255,7 +258,7 @@ export class SolanaOperations {
 
     /**
      * Close Empty SPL Token accounts of the agent
-     * @param agent SolanaAgentKit instance
+     * @param agent Agent instance
      * @returns transaction signature and total number of accounts closed
      */
     public async closeEmptyTokenAccounts(
@@ -308,7 +311,7 @@ export class SolanaOperations {
 
     /**
      * creates the close instuctions of a spl token account
-     * @param agnet SolanaAgentKit instance
+     * @param agnet Agent instance
      * @param token_program Token Program Id
      * @returns close instuction array
      */

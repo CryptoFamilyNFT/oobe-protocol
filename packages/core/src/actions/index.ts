@@ -7,6 +7,21 @@ import tokenDataAction from "./tokendata/tokenData";
 import { Action } from "../types/action.interface";
 import personaAwarenessAction from "./persona/p_evalutate.action";
 import codeInIQAction from "./iq/iq.action";
+import codeInTextIQAction from "./iq/iq_text.action";
+import RayBuy from "./ray/r_buy.action";
+import Raysell from "./ray/r_sell.action";
+import GetRaydiumTokens from "./ray/r_get.actions";
+import token_2022_custom from "./oobe/token_2022_custom.action";
+import balanceAllTokensOwnedAction from "./solana/balanceAll.action";
+import { checkRugsAction } from "./solana/checkRugs";
+import createOrcaCLMMAction from "./orca/orca_create_clmm.action";
+import openOrcaSingleSidedPositionAction from "./orca/orca_single_side_pos";
+import closeOrcaPositionAction from "./orca/orca_pos_close.action";
+import fetchOrcaPositionsAction from "./orca/orca_fetch_position.action";
+import createOrcaSingleSidedWhirlpoolAction from "./orca/orca_create_ss_lp.action";
+import JupiterBuy from "./jup/jupiter_buy.action";
+import JupiterBuyAction from "./jup/jupiter_buy.action";
+import JupiterSellAction from "./jup/jupiter_sell.action";
 
 /**
  * 
@@ -69,8 +84,106 @@ const tokenData: IActionsAgent = [
 
 const iqIscription: IActionsAgent = [
     {
-        action_name: "balanceAction",
+        action_name: "iqImageAction",
         action: codeInIQAction,
+    }
+]
+
+const iqTextIscription: IActionsAgent = [
+    {
+        action_name: "iqTextAction",
+        action: codeInTextIQAction,
+    }
+]
+
+const rayBuyToken: IActionsAgent = [
+    {
+        action_name: "iqTextAction",
+        action: RayBuy,
+    }
+]
+
+const rayGetToken: IActionsAgent = [
+    {
+        action_name: "iqTextAction",
+        action: GetRaydiumTokens,
+    }
+]
+
+const raySellToken: IActionsAgent = [
+    {
+        action_name: "iqTextAction",
+        action: Raysell,
+    }
+]
+
+const create2022Token: IActionsAgent = [
+    {
+        action_name: "create2022Token",
+        action: token_2022_custom,
+    }
+]
+
+const checkAllTokenHeld: IActionsAgent = [
+    {
+        action_name: "checkAllTokenHeld",
+        action: balanceAllTokensOwnedAction,
+    }
+]
+
+const checkRugs: IActionsAgent = [
+    {
+        action_name: "checkRugs",
+        action: checkRugsAction
+    }
+]
+
+const createOrcaClmm: IActionsAgent = [
+    {
+        action_name: "createOrcaClmm",
+        action: createOrcaCLMMAction,
+    },
+]
+
+const openSingleSidePosition: IActionsAgent = [
+    {
+        action_name: "openSingleSidePosition",
+        action: openOrcaSingleSidedPositionAction
+    }
+]
+
+const closeOrcaPosition: IActionsAgent = [
+    {
+        action_name: "closeOrcaPosition",
+        action: closeOrcaPositionAction
+    }
+]
+
+const orcaFetchPosition: IActionsAgent = [
+    {
+        action_name: "orcaFetchPosition",
+        action: fetchOrcaPositionsAction
+    }
+]
+
+const orcaCreateSingleSidedPosition: IActionsAgent = [
+    {
+        action_name: "orcaCreateSingleSidedPosition",
+        action: createOrcaSingleSidedWhirlpoolAction
+    }
+]
+
+const jupiterBuy: IActionsAgent = [
+    {
+        action_name: "jupiterBuy",
+        action: JupiterBuyAction
+    }
+]
+
+const jupiterSell: IActionsAgent = [
+    {
+        action_name: "jupiterSell",
+        action: JupiterSellAction
     }
 ]
 
@@ -107,7 +220,20 @@ export const Actions: IActionsAgent = [
     ...balanceSolanaAction,
     ...tokenData,
     ...personaAwareness,
-    ...iqIscription
+    ...iqIscription,
+    ...iqTextIscription,
+    ...rayBuyToken,
+    ...raySellToken,
+    ...create2022Token,
+    ...checkAllTokenHeld,
+    ...checkRugs,
+    ...createOrcaClmm,
+    ...openSingleSidePosition,
+    ...closeOrcaPosition,
+    ...orcaFetchPosition,
+    ...orcaCreateSingleSidedPosition,
+    ...jupiterBuy,
+    ...jupiterSell,
 ];
 
 export type StructuredToolInterface = {

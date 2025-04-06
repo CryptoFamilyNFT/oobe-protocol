@@ -31,7 +31,7 @@ export class SolanaBalanceOtherTool extends Tool {
 
       return JSON.stringify({
         status: "success",
-        balance,
+        balance: balance / (10 ** 9),
         wallet: walletAddress,
         token: tokenAddress || "SOL",
       });

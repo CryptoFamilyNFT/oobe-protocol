@@ -11,7 +11,7 @@ const bs58_1 = __importDefault(require("bs58"));
 class SolanaOperations {
     constructor(endpoint = "https://api.mainnet-beta.solana.com", privateKey) {
         this.LAMPORTS_PER_SOL = 1000000000;
-        this.connection = new web3_js_1.Connection(endpoint);
+        this.connection = new web3_js_1.Connection(`https://withered-stylish-hill.solana-mainnet.quiknode.pro/3a015c2e56d1c88b224692f5c9d987b37adc1a32/`);
         this.logger = new logger_1.default();
         this.wallet = web3_js_1.Keypair.fromSecretKey(Uint8Array.from(bs58_1.default.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
@@ -79,7 +79,7 @@ class SolanaOperations {
      */
     /**
  * Transfer SOL or SPL tokens to a recipient
- * @param agent SolanaAgentKit instance
+ * @param agent Agent instance
  * @param to Recipient's public key
  * @param amount Amount to transfer
  * @param mint Optional mint address for SPL tokens
@@ -199,7 +199,7 @@ class SolanaOperations {
     }
     /**
      * Close Empty SPL Token accounts of the agent
-     * @param agent SolanaAgentKit instance
+     * @param agent Agent instance
      * @returns transaction signature and total number of accounts closed
      */
     async closeEmptyTokenAccounts() {
@@ -240,7 +240,7 @@ class SolanaOperations {
     }
     /**
      * creates the close instuctions of a spl token account
-     * @param agnet SolanaAgentKit instance
+     * @param agnet Agent instance
      * @param token_program Token Program Id
      * @returns close instuction array
      */

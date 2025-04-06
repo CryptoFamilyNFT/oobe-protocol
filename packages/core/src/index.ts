@@ -17,3 +17,5 @@ export * from './utils/createTools';
 export * from './utils/helpers/verifyConfig';
 export * from './utils/logger/logger';
 export * from './config/default';
+export * from './config/PDAManager';
+export * from './operations/merkle.operation';

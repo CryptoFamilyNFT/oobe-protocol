@@ -39,11 +39,19 @@ export async function SolanaTokenBalances(
   const tokenBalances = await Promise.all(
     removedZeroBalance.map(async (v) => {
       const mint = v.account.data.parsed.info.mint;
-      const mintInfo = await getTokenMetadata(agent.connection, mint);
+      const metadataPDA = await PublicKey.findProgramAddress(
+        [
+          Buffer.from("metadata"),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          new PublicKey(mint).toBuffer(),
+        ],
+        TOKEN_PROGRAM_ID
+      );
+      const mintInfo = await getTokenMetadata(agent.connection, metadataPDA[0], mint);
       return {
         tokenAddress: mint,
-        name: mintInfo.name ?? "",
-        symbol: mintInfo.symbol ?? "",
+        name: mintInfo?.name ?? "",
+        symbol: mintInfo?.symbol ?? "",
         balance: v.account.data.parsed.info.tokenAmount.uiAmount as number,
         decimals: v.account.data.parsed.info.tokenAmount.decimals as number,
       };

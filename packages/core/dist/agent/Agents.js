@@ -13,9 +13,15 @@ const openai_1 = require("@langchain/openai");
 const pumpfun_operation_1 = require("../operations/pumpfun.operation");
 const Persona_1 = require("./persona/Persona");
 const bs58_1 = __importDefault(require("bs58"));
+const iq_operation_1 = require("../operations/iq/iq.operation");
+const ray_operation_1 = require("../operations/ray/ray.operation");
+const oobe_operation_1 = require("../operations/oobe/oobe.operation");
+const adrena_operation_1 = require("../operations/adrena/adrena.operation");
+const merkleValidator_1 = require("../utils/merkleValidator");
+const merkle_operation_1 = require("../operations/merkle.operation");
+const jup_operation_1 = require("../operations/jup/jup.operation");
 class Agent {
     constructor(solanaEndpoint, privateKey, openKey, logger) {
-        console.log(privateKey);
         this.solanaOps = new solana_operation_1.SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
@@ -23,6 +29,8 @@ class Agent {
         this.wallet = web3_js_1.Keypair.fromSecretKey(Uint8Array.from(bs58_1.default.decode(privateKey)));
         this.actions = new Map();
         this.connection = this.solanaOps.getConnection();
+        this.iqOps = new iq_operation_1.IQOperation();
+        this.merkle = new merkle_operation_1.MerkleTreeManager(this);
     }
     async initialize() {
         try {
@@ -39,11 +47,11 @@ class Agent {
     }
     async initOpenAiAuth() {
         Agent.open_ai = new openai_1.ChatOpenAI({
-            modelName: "gpt-4o-mini",
+            apiKey: this.OPEN_AI_KEY,
+            modelName: "gpt-4o",
             temperature: 0.7,
-            apiKey: this.OPEN_AI_KEY
         });
-        this.logger.info(this.logger.colorize("Google Gen Auth initialized successfully!", "magenta"));
+        this.logger.info(this.logger.colorize("[oobe-protocol] - Auth initialized successfully!", "magenta"));
     }
     async getOpenK() {
         return this.OPEN_AI_KEY;
@@ -150,6 +158,77 @@ class Agent {
             return result;
         }
         ;
+    }
+    getJupiterOp() {
+        return new jup_operation_1.JupiterSwap(this.connection, this.wallet);
+    }
+    async generateCodeInIQInscription(input, type, fontSize, density) {
+        return this.iqOps.AstralChef(input, fontSize, density, this, type);
+    }
+    async createToken2022(name, symbol, decimals, supply, description, feeBasisPoints, maxFeeInTokens, pinataKey, imageUrl) {
+        const oobeOp = new oobe_operation_1.OobeOperation(this);
+        const token = await oobeOp.createOobe2022Token({
+            name,
+            symbol,
+            decimals,
+            supply,
+            feeBasisPoints,
+            maxFee: maxFeeInTokens,
+            pinataKey,
+            imageUrl,
+            description,
+        });
+        return token;
+    }
+    async buyRaydiumToken(tokenMint, tokenNative, amount, slippage, tokenSymbol) {
+        const rayOp = new ray_operation_1.RayOperation(this);
+        return rayOp.buyRaydiumToken({
+            tokenNative: tokenNative,
+            tokenMint: tokenMint,
+            amount: amount,
+            slippage: slippage,
+        });
+    }
+    async sellRaydiumToken(tokenMint, tokenNative, amount, slippage) {
+        const rayOp = new ray_operation_1.RayOperation(this);
+        return rayOp.sellRaydiumToken({
+            tokenNative: tokenNative,
+            tokenMint: tokenMint,
+            amount: amount,
+            slippage: slippage,
+        });
+    }
+    async getNewPools() {
+        const rayOp = new ray_operation_1.RayOperation(this);
+        const data = await rayOp.getNewPools();
+        return data;
+    }
+    merkleValidate(input, result) {
+        return (0, merkleValidator_1.merkleValidator)(this, input, result);
+    }
+    async openPerpTradeLong(args) {
+        return (0, adrena_operation_1.openPerpTradeLong)({
+            agent: this,
+            ...args,
+        });
+    }
+    async openPerpTradeShort(args) {
+        return (0, adrena_operation_1.openPerpTradeShort)({
+            agent: this,
+            ...args,
+        });
+    }
+    async closePerpTradeShort(args) {
+        return (0, adrena_operation_1.closePerpTradeShort)({
+            agent: this,
+            ...args,
+        });
+    }
+    async closePerpTradeLong(args) {
+        return (0, adrena_operation_1.closePerpTradeLong)({
+            agent: this,
+            ...args,
+        });
     }
     async launchPumpFunToken(agent, tokenName, tokenTicker, description, imageUrl, options) {
         const pfOp = new pumpfun_operation_1.PumpfunOperation();

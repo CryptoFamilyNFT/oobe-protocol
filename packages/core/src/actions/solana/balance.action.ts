@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { Action } from "../../types/action.interface";
 import { Agent } from "../../agent/Agents";
-import { z } from "zod";
+import { symbol, z } from "zod";
+import { RayOperation } from "../../operations/ray/ray.operation";
 
 const balanceAction: Action = {
   name: "BALANCE_ACTION",
@@ -30,31 +31,50 @@ const balanceAction: Action = {
     [
       {
         input: {
-          tokenAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          tokenAddress: "CxjFWdd5AufqzSqeM2qN1xzybapC8G4wEGGkZwyTpumpa",
         },
         output: {
           status: "success",
+          wallet: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
           balance: "1000",
-          token: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          token: "CxjFWdd5AufqzSqeM2qN1xzybapC8G4wEGGkZwyTpumpa",
         },
         explanation: "Get USDC token balance",
       },
     ],
   ],
   schema: z.object({
-    tokenAddress: z.string().optional(),
+    tokenAddress: z.string().optional().describe("Token address to check balance for (optional)"),
   }),
   handler: async (agent: Agent, input: Record<string, any>) => {
+    console.log("Input:", input);
+    const rayOp = new RayOperation(agent);
+    if (!input.tokenAddress || Object.keys(input.tokenAddress).length === 0) {
+      const balance = await agent.connection.getBalance(agent.wallet.publicKey);
+      return {
+        status: "success",
+        balance: balance / 1e9,
+        token: "SOL",
+      };
+    } else {
+      console.log("Checking balance tokens of ca:", input.tokenAddress);
+      const { tokenAccounts } = await rayOp.parseTokenAccountData();
+      const tokenAccount = tokenAccounts.find(a => a.mint.toBase58() === new PublicKey(input.tokenAddress).toBase58());
+      if (!tokenAccount || !tokenAccount.publicKey) {
+        throw new Error("Token account not found");
+      }
+      const balance = await agent.connection.getTokenAccountBalance(
+        tokenAccount?.publicKey ?? (() => { throw new Error("inputTokenAcc is undefined"); })()
+      );
 
-    const balance = await agent.connection.getBalance(
-      input.tokenAddress && new PublicKey(input.tokenAddress),
-    );
-
-    return {
-      status: "success",
-      balance: balance,
-      token: input.tokenAddress || "SOL",
-    };
+      return {
+        status: "success",
+        wallet: tokenAccount?.publicKey.toBase58(),
+        balance: balance.value.uiAmount,
+        token: input.tokenAddress,
+        symbol: symbol,
+      };
+    }
   },
 };
 

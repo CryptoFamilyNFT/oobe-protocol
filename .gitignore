@@ -24,3 +24,7 @@ logs
 
 # Environment variables
 .env*
+
+# history
+.history
+.history

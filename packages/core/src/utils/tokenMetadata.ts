@@ -1,63 +1,97 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  getTokenMetadata as gTMeta,
+  getMint,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
 
 export async function getTokenMetadata(
   connection: Connection,
-  tokenMint: string,
+  metadataPDA: PublicKey,
+  mint: PublicKey
 ) {
-  const METADATA_PROGRAM_ID = new PublicKey(
-    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
-  );
+  let metadata = await connection.getAccountInfo(metadataPDA);
 
-  const [metadataPDA] = PublicKey.findProgramAddressSync(
-    [
-      Buffer.from("metadata"),
-      METADATA_PROGRAM_ID.toBuffer(),
-      new PublicKey(tokenMint).toBuffer(),
-    ],
-    METADATA_PROGRAM_ID,
-  );
+  // Verifica se il token è un Token2022
+  let isToken2022 = false;
+  const mintInfo = await getMint(connection, mint, "confirmed");
+  if (mintInfo.mintAuthority?.equals(TOKEN_2022_PROGRAM_ID)) {
+    isToken2022 = true;
+  }
 
-  const metadata = await connection.getAccountInfo(metadataPDA);
+  // Se è un Token2022, usa il metodo corretto
+  if (isToken2022) {
+    try {
+      const tokenMetadata = await gTMeta(
+        connection,
+        mint,
+        "confirmed",
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      if (tokenMetadata) {
+        return {
+          name: tokenMetadata.name ?? null,
+          symbol: tokenMetadata.symbol ?? null,
+          uri: tokenMetadata.uri ?? null,
+          sellerFeeBasisPoints: 0,
+          creators: null,
+          decimals: 9,
+        };
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Se non è un Token2022, prova a recuperare i metadati SPL standard
   if (!metadata?.data) {
-    throw new Error("Metadata not found");
+    return null;
   }
 
   let offset = 1 + 32 + 32; // key + update auth + mint
   const data = metadata.data;
   const decoder = new TextDecoder();
 
-  // Read variable length strings
+  // Funzione per leggere stringhe variabili
   const readString = () => {
-    let nameLength = data[offset];
+    let nameLength = data?.[offset];
 
     while (nameLength === 0) {
       offset++;
-      nameLength = data[offset];
-      if (offset >= data.length) {
-        return null;
-      }
+      nameLength = data?.[offset];
+      if (!data || offset >= data.length) return null;
     }
+
+    if (nameLength === undefined) return null;
 
     offset++;
     const name = decoder
       .decode(data.slice(offset, offset + nameLength))
-      // @eslint-disable-next-line no-control-regex
       .replace(new RegExp(String.fromCharCode(0), "g"), "");
     offset += nameLength;
     return name;
   };
 
+  // 📌 3️⃣ Ottieni i DECIMALI dal mint
+  const decimals = mintInfo.decimals;
+
   const name = readString();
   const symbol = readString();
   const uri = readString();
 
-  // Read remaining data
-  const sellerFeeBasisPoints = data.readUInt16LE(offset);
-  offset += 2;
+  if (!data) return null;
 
-  let creators:
-    | { address: PublicKey; verified: boolean; share: number }[]
-    | null = null;
+  let sellerFeeBasisPoints = 0;
+  try {
+    sellerFeeBasisPoints = data.readUInt16LE(offset);
+    offset += 2;
+  } catch (e) {
+    return
+  }
+
+  let creators: { address: PublicKey; verified: boolean; share: number }[] | null =
+    null;
   if (data[offset] === 1) {
     offset++;
     const numCreators = data[offset];
@@ -79,5 +113,6 @@ export async function getTokenMetadata(
     uri,
     sellerFeeBasisPoints,
     creators,
+    decimals
   };
 }

@@ -1,18 +1,28 @@
 import { createReactAgent, ToolNode } from "@langchain/langgraph/prebuilt";
-import { OobeCore } from "..";
+import { IOfficialEndpoint, OobeCore } from "..";
 import { Actions } from "../actions";
 import { Agent } from "../agent/Agents";
-import {ConfigManager} from "../config/default";
+import { ConfigManager } from "../config/default";
 import { createSolanaTools } from "../config/tool/index.tool";
 import { MemorySaver } from "@langchain/langgraph";
 import * as readline from "readline";
 import { HumanMessage } from "@langchain/core/messages";
+import { ResponseMessage } from "../types/agent.interface";
+import { MerkleTreeManager } from "../operations/merkle.operation";
 
 async function AgentExecution(oobe: OobeCore) {
+
+
   /**
 * @description Get the agent from the OOBE core module
 */
   const agent = oobe.getAgent();
+
+  /**
+  * @description Get merkle tree manager
+  */
+  const merkleTreeManager = new MerkleTreeManager(agent);
+
   /**
 * @description Register the actions from the OOBE protocol
 */
@@ -30,7 +40,7 @@ async function AgentExecution(oobe: OobeCore) {
 
   const memory = new MemorySaver();
 
-  const config = { configurable: { thread_id: "Solana Agent Kit!" } };
+  const config = { configurable: { thread_id: "OOBE AGENT BUILDER!" } };
 
   /**
    * @description Loop for the agent to think and respond to the user input or prompt from the agent itself 
@@ -38,7 +48,7 @@ async function AgentExecution(oobe: OobeCore) {
    */
 
   const oobe_agent = createReactAgent({
-    llm: await agent.genAi(),
+    llm: agent.genAi(),
     tools: tools as unknown as ToolNode<any>,
     checkpointSaver: memory,
     messageModifier: `
@@ -59,6 +69,7 @@ async function AgentExecution(oobe: OobeCore) {
 
   const question = (prompt: string): Promise<string> => new Promise((resolve) => rl.question(prompt, resolve));
 
+
   try {
     while (true) {
       const userInput = await question("\nPrompt: ");
@@ -72,13 +83,30 @@ async function AgentExecution(oobe: OobeCore) {
         config,
       );
 
+      let toolsRes: ResponseMessage[] = [];
+      let agentRes: string = "";
+
       for await (const chunk of stream) {
         if ("agent" in chunk) {
-          console.log("\x1b[32m%s\x1b[0m", chunk.agent.messages[0].content); // Green color for agent messages
-        } else if ("tools" in chunk) {
-          console.log("\x1b[34m%s\x1b[0m", chunk.tools.messages[0].content); // Blue color for tools messages
+          agentRes = chunk.agent.messages[0].content;
+          console.log("\x1b[32m%s\x1b[0m", agentRes);
         }
-        console.log("-------------------");
+        if ("tools" in chunk) {
+          toolsRes = chunk.tools.messages;
+          console.log("\x1b[33m%s\x1b[0m", toolsRes);
+        }
+      }
+
+      if (toolsRes.length > 0 && agentRes) {
+        const data_merkle = agent.merkleValidate(toolsRes, agentRes as unknown as Record<string, any>);
+        setImmediate(async () => {
+          try {
+            await agent.merkle.onChainMerkleInscription(data_merkle);
+          } catch (err) {
+            //retry inscription
+            await agent.merkle.onChainMerkleInscription(data_merkle);
+          }
+        });
       }
     }
   } catch (error) {
@@ -98,13 +126,13 @@ function main() {
 
   const configManager = new ConfigManager();
 
-  configManager.createDefaultConfig(
-    process.env.PRIVATE_KEY || '',
-    process.env.OPENAI_KEY || '',
+  const config = configManager.createDefaultConfig(
+    process.env.PVT_KEY || '',
+    process.env.OPENAI_API_KEY || '',
     process.env.OOBE_KEY || '',
   )
 
-  const oobe = new OobeCore(configManager.getDefaultConfig())
+  const oobe = new OobeCore(config)
   oobe.start();
 
   AgentExecution(oobe);

@@ -1,0 +1,1 @@
+{"version":3,"file":"iq.type.d.ts","sourceRoot":"","sources":["../../../../src/operations/iq/type/iq.type.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,gBAAgB;IAC7B,WAAW,EAAE,MAAM,CAAC;IACpB,QAAQ,EAAE,MAAM,CAAC;IACjB,OAAO,EAAE,MAAM,CAAC;IAChB,SAAS,CAAC,EAAE,OAAO,CAAC;CACvB;AAED,MAAM,WAAW,cAAc;IAC3B,WAAW,EAAE,MAAM,CAAC;IACpB,QAAQ,EAAE,MAAM,CAAC;IACjB,YAAY,EAAE,MAAM,CAAC;CACxB"}

@@ -11,6 +11,14 @@ import { PumpfunLaunchResponse, PumpFunTokenOptions } from "../types/index.inter
 import { PumpfunOperation } from "../operations/pumpfun.operation";
 import { PersonaImpl } from "./persona/Persona";
 import bs58 from "bs58";
+import { IQOperation } from "../operations/iq/iq.operation";
+import { RayOperation } from "../operations/ray/ray.operation";
+import { OobeOperation } from "../operations/oobe/oobe.operation";
+import { closePerpTradeLong, closePerpTradeShort, openPerpTradeLong, openPerpTradeShort } from "../operations/adrena/adrena.operation";
+import { merkleValidator, MerkleValidatorResult } from "../utils/merkleValidator";
+import { MerkleTreeManager } from "../operations/merkle.operation";
+import { ResponseMessage } from "../types/agent.interface";
+import { JupiterSwap } from "../operations/jup/jup.operation";
 
 export class Agent {
     private solanaOps: SolanaOperations;
@@ -22,9 +30,10 @@ export class Agent {
     //private GOOGLE_API_KEY: string;
     private OPEN_AI_KEY: string;
     public static open_ai: ChatOpenAI;
+    private iqOps: IQOperation;
+    public merkle: MerkleTreeManager;
 
-    constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string , logger: Logger) {
-        console.log(privateKey)
+    constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string, logger: Logger) {
         this.solanaOps = new SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
@@ -32,6 +41,8 @@ export class Agent {
         this.wallet = Keypair.fromSecretKey(Uint8Array.from(bs58.decode(privateKey)));
         this.actions = new Map();
         this.connection = this.solanaOps.getConnection();
+        this.iqOps = new IQOperation();
+        this.merkle = new MerkleTreeManager(this);
     }
 
     async initialize() {
@@ -50,12 +61,12 @@ export class Agent {
 
     async initOpenAiAuth() {
         Agent.open_ai = new ChatOpenAI({
-            modelName: "gpt-4o-mini",
+            apiKey: this.OPEN_AI_KEY,
+            modelName: "gpt-4o",
             temperature: 0.7,
-            apiKey: this.OPEN_AI_KEY
         });
 
-        this.logger.info(this.logger.colorize("Google Gen Auth initialized successfully!", "magenta"));
+        this.logger.info(this.logger.colorize("[oobe-protocol] - Auth initialized successfully!", "magenta"));
     }
 
     async getOpenK() {
@@ -178,6 +189,118 @@ export class Agent {
         } else {
             return result
         };
+    }
+
+    getJupiterOp() {
+        return new JupiterSwap(this.connection, this.wallet);
+    }
+
+    async generateCodeInIQInscription(input: string, type: string, fontSize: number, density: number): Promise<any> {
+        return this.iqOps.AstralChef(input, fontSize, density, this, type);
+    }
+
+    async createToken2022(
+        name: string,
+        symbol: string,
+        decimals: number,
+        supply: number,
+        description: string,
+        feeBasisPoints: number,
+        maxFeeInTokens: number,
+        pinataKey: string,
+        imageUrl: string,
+    ): Promise<any> {
+        const oobeOp = new OobeOperation(this);
+        const token = await oobeOp.createOobe2022Token({
+            name,
+            symbol,
+            decimals,
+            supply,
+            feeBasisPoints,
+            maxFee: maxFeeInTokens,
+            pinataKey,
+            imageUrl,
+            description,
+        });
+
+        return token;
+    }
+
+    public async buyRaydiumToken(
+        tokenMint: string,
+        tokenNative: string,
+        amount: number,
+        slippage: number,
+        tokenSymbol?: string,
+    ): Promise<any> {
+        const rayOp = new RayOperation(this);
+        return rayOp.buyRaydiumToken({
+            tokenNative: tokenNative,
+            tokenMint: tokenMint,
+            amount: amount,
+            slippage: slippage,
+        });
+    }
+
+    public async sellRaydiumToken(
+        tokenMint: string,
+        tokenNative: string,
+        amount: number,
+        slippage: number,
+    ): Promise<any> {
+        const rayOp = new RayOperation(this);
+        return rayOp.sellRaydiumToken({
+            tokenNative: tokenNative,
+            tokenMint: tokenMint,
+            amount: amount,
+            slippage: slippage,
+        });
+    }
+
+    public async getNewPools(): Promise<any> {
+        const rayOp = new RayOperation(this);
+        const data = await rayOp.getNewPools();
+        return data;
+    }
+
+    public merkleValidate(input: ResponseMessage[], result: Record<string, any>): MerkleValidatorResult {
+        return merkleValidator(this, input, result);
+    }
+
+    async openPerpTradeLong(
+        args: Omit<Parameters<typeof openPerpTradeLong>[0], "agent">,
+    ): Promise<string> {
+        return openPerpTradeLong({
+            agent: this,
+            ...args,
+        });
+    }
+
+    async openPerpTradeShort(
+        args: Omit<Parameters<typeof openPerpTradeShort>[0], "agent">,
+    ): Promise<string> {
+        return openPerpTradeShort({
+            agent: this,
+            ...args,
+        });
+    }
+
+    async closePerpTradeShort(
+        args: Omit<Parameters<typeof closePerpTradeShort>[0], "agent">,
+    ): Promise<string> {
+        return closePerpTradeShort({
+            agent: this,
+            ...args,
+        });
+    }
+
+    async closePerpTradeLong(
+        args: Omit<Parameters<typeof closePerpTradeLong>[0], "agent">,
+    ): Promise<string> {
+        return closePerpTradeLong({
+            agent: this,
+            ...args,
+        });
     }
 
     async launchPumpFunToken(

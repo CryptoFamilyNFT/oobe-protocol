@@ -32,6 +32,8 @@ export class ConfigManager {
             private_key: "",
             openAiKey: "",
             oobeKey: "",
+            merkleDbSeed: "oobedbleaf!",
+            merkleRootSeed: "oobedbroot!",
         };
     }
 
@@ -51,6 +53,8 @@ export class ConfigManager {
         solanaEndpoint?: IOfficialEndpoint,
         solanaUnofficialEndpoints?: IUnofficialEndpoints[],
         solanaExplorer?: string,
+        merkleDbSeed: string = "oobedbleaf",
+        merkleRootSeed: string = "oobedbroot",
     ): IConfiguration {
         return {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
@@ -59,6 +63,8 @@ export class ConfigManager {
             private_key: privateKey,
             openAiKey: openAiKey,
             oobeKey: oobeKey,
+            merkleDbSeed: merkleDbSeed,
+            merkleRootSeed: merkleRootSeed,
         };
     }
 

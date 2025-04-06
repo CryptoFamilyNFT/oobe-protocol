@@ -1,0 +1,1 @@
+{"version":3,"file":"agent.interface.d.ts","sourceRoot":"","sources":["../../src/types/agent.interface.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,eAAe,GAAG;IAC1B,EAAE,EAAE,MAAM,CAAC;IACX,OAAO,EAAE,MAAM,CAAC;IAChB,IAAI,EAAE,MAAM,CAAC;IACb,iBAAiB,EAAE,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,CAAC;IACvC,iBAAiB,EAAE,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,CAAC;IACvC,YAAY,EAAE,MAAM,CAAC;CACxB,CAAC"}

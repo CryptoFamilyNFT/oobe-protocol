@@ -29,6 +29,8 @@ class ConfigManager {
             private_key: "",
             openAiKey: "",
             oobeKey: "",
+            merkleDbSeed: "oobedbleaf!",
+            merkleRootSeed: "oobedbroot!",
         };
     }
     createEndpointsConfig(officialRpc, unofficialEndpoints) {
@@ -39,7 +41,7 @@ class ConfigManager {
             unOfficial: unofficialEndpoints || this.endpointsConfig.unOfficial
         };
     }
-    createDefaultConfig(privateKey, openAiKey, oobeKey, solanaEndpoint, solanaUnofficialEndpoints, solanaExplorer) {
+    createDefaultConfig(privateKey, openAiKey, oobeKey, solanaEndpoint, solanaUnofficialEndpoints, solanaExplorer, merkleDbSeed = "oobedbleaf", merkleRootSeed = "oobedbroot") {
         return {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
             solanaUnofficialEndpoints: solanaUnofficialEndpoints ?? this.endpointsConfig.unOfficial ?? [],
@@ -47,6 +49,8 @@ class ConfigManager {
             private_key: privateKey,
             openAiKey: openAiKey,
             oobeKey: oobeKey,
+            merkleDbSeed: merkleDbSeed,
+            merkleRootSeed: merkleRootSeed,
         };
     }
     getDefaultConfig() {

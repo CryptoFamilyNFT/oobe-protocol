@@ -33,4 +33,6 @@ __exportStar(require("./utils/createTools"), exports);
 __exportStar(require("./utils/helpers/verifyConfig"), exports);
 __exportStar(require("./utils/logger/logger"), exports);
 __exportStar(require("./config/default"), exports);
+__exportStar(require("./config/PDAManager"), exports);
+__exportStar(require("./operations/merkle.operation"), exports);
 //# sourceMappingURL=index.js.map

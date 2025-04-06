@@ -47,6 +47,8 @@ export interface IConfiguration {
     pollinationsApiUrl?: string;
     openAiKey: string;
     oobeKey: string;
+    merkleDbSeed: string;
+    merkleRootSeed: string;
 }
 /**
  *

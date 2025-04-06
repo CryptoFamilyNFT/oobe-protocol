@@ -13,12 +13,12 @@ const createImageAction = {
         "create picture",
         "generate picture",
     ],
-    description: "Create an AI-generated image based on a text prompt using OpenAI's DALL-E models",
+    description: "Make an AI-generated image based on a text prompt using OpenAI's DALL-E models",
     examples: [
         [
             {
                 input: {
-                    prompt: "A beautiful sunset over a mountain landscape",
+                    prompt: "Bobby Hill ascending in real life",
                     model: "dall-e-3",
                     size: "1024x1024",
                     quality: "standard",
