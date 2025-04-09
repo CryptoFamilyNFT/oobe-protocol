@@ -1,6 +1,6 @@
 {
   "name": "oobe-protocol",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "That's a protocol for OOBE, an SDK for building AI Agents and Conversational Interfaces",
   "main": "packages/core/dist/index.js",
   "types": "packages/core/dist/index.d.ts",

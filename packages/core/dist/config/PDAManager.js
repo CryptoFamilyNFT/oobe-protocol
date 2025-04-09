@@ -13,19 +13,19 @@ const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const crypto_js_1 = require("crypto-js");
 const clearBuffer_1 = require("../utils/clearBuffer");
 class OobePdaTransactionManager {
-    constructor(agent) {
+    constructor(agentAdd, connection) {
         this.config = new default_1.ConfigManager().getDefaultConfig();
-        this.agent = agent;
-        this.connection = agent.connection;
+        this.agentAdd = new web3_js_1.PublicKey(agentAdd);
+        this.connection = connection;
     }
     /**
      * @returns {LeafPDA, RootPDA} - PDAs derived using Merkle DB and Root seed
      */
     getUserPDAs() {
-        const wallet = this.agent.wallet;
+        const wallet = this.agentAdd;
         const { merkleDbSeed, merkleRootSeed } = this.config;
-        const [LeafPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleDbSeed}@${wallet.publicKey.toBase58()}`).toString().slice(0, 32), "hex")], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
-        const [RootPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}@${wallet.publicKey.toBase58()}`).toString().slice(0, 32), "hex")], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
+        const [LeafPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleDbSeed}@${wallet.toBase58()}`).toString().slice(0, 32), "hex")], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
+        const [RootPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}@${wallet.toBase58()}`).toString().slice(0, 32), "hex")], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
         return { LeafPDA, RootPDA };
     }
     /**

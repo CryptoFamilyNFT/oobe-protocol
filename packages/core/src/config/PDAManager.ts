@@ -14,29 +14,29 @@ import { trimTrailingZeros } from "../utils/clearBuffer";
 import { ZeroChunk } from "../operations/merkle.operation";
 
 export class OobePdaTransactionManager {
-    private agent: Agent;
+    private agentAdd: PublicKey;
     private connection: Connection;
     private config = new ConfigManager().getDefaultConfig();
 
-    constructor(agent: Agent) {
-        this.agent = agent;
-        this.connection = agent.connection;
+    constructor(agentAdd: string, connection: Connection) {
+        this.agentAdd = new PublicKey(agentAdd);
+        this.connection = connection;
     }
 
     /**
      * @returns {LeafPDA, RootPDA} - PDAs derived using Merkle DB and Root seed
      */
     public getUserPDAs() {
-        const wallet = this.agent.wallet;
+        const wallet = this.agentAdd;
         const { merkleDbSeed, merkleRootSeed } = this.config;
 
         const [LeafPDA] = PublicKey.findProgramAddressSync(
-            [Buffer.from(SHA256(`${merkleDbSeed}@${wallet.publicKey.toBase58()}`).toString().slice(0, 32), "hex")],
+            [Buffer.from(SHA256(`${merkleDbSeed}@${wallet.toBase58()}`).toString().slice(0, 32), "hex")],
             SYSTEM_PROGRAM_ID
         );
 
         const [RootPDA] = PublicKey.findProgramAddressSync(
-            [Buffer.from(SHA256(`${merkleRootSeed}@${wallet.publicKey.toBase58()}`).toString().slice(0, 32), "hex")],
+            [Buffer.from(SHA256(`${merkleRootSeed}@${wallet.toBase58()}`).toString().slice(0, 32), "hex")],
             SYSTEM_PROGRAM_ID
         );
 

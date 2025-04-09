@@ -4,14 +4,13 @@
  *              from a custom Merkle-based storage system on Solana, designed for the OOBE protocol.
  * @author OOBE
  */
-import { ConfirmedSignatureInfo, PublicKey } from "@solana/web3.js";
-import { Agent } from "../agent/Agents";
+import { ConfirmedSignatureInfo, Connection, PublicKey } from "@solana/web3.js";
 import { ZeroChunk } from "../operations/merkle.operation";
 export declare class OobePdaTransactionManager {
-    private agent;
+    private agentAdd;
     private connection;
     private config;
-    constructor(agent: Agent);
+    constructor(agentAdd: string, connection: Connection);
     /**
      * @returns {LeafPDA, RootPDA} - PDAs derived using Merkle DB and Root seed
      */
