@@ -18,6 +18,14 @@ export declare class OobePdaTransactionManager {
         LeafPDA: PublicKey;
         RootPDA: PublicKey;
     };
+    FindParsedOutputTransaction(signatures: ConfirmedSignatureInfo[]): {
+        memo: string | null;
+        signature: string;
+        slot: number;
+        err: import("@solana/web3.js").TransactionError | null;
+        blockTime?: number | null;
+        confirmationStatus?: import("@solana/web3.js").TransactionConfirmationStatus;
+    }[];
     /**
      * @param pda PublicKey of the Root PDA
      * @returns Filtered transactions with valid memo fields
@@ -29,9 +37,16 @@ export declare class OobePdaTransactionManager {
      * @returns Structured transaction objects with ZeroChunk memo structure
      */
     getStructuredDbTransactions(pda: PublicKey, transactionsRoot: ConfirmedSignatureInfo[]): Promise<{
-        root: any;
-        proofSignature: any;
+        root: string;
+        proofSignature: string;
         transaction: {
+            memo: string | null;
+            signature: string;
+            slot: number;
+            err: import("@solana/web3.js").TransactionError | null;
+            blockTime?: number | null;
+            confirmationStatus?: import("@solana/web3.js").TransactionConfirmationStatus;
+        } | {
             memo: ZeroChunk;
             signature: string;
             slot: number;

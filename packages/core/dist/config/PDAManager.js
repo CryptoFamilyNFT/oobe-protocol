@@ -28,6 +28,16 @@ class OobePdaTransactionManager {
         const [RootPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}@${wallet.toBase58()}`).toString().slice(0, 32), "hex")], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
         return { LeafPDA, RootPDA };
     }
+    FindParsedOutputTransaction(signatures) {
+        const transactions = signatures.map((signature) => {
+            const decodedMemo = signature.memo;
+            return {
+                ...signature,
+                memo: decodedMemo,
+            };
+        });
+        return transactions;
+    }
     /**
      * @param pda PublicKey of the Root PDA
      * @returns Filtered transactions with valid memo fields
@@ -43,47 +53,84 @@ class OobePdaTransactionManager {
      */
     async getStructuredDbTransactions(pda, transactionsRoot) {
         const signatures = await this.connection.getSignaturesForAddress(pda);
-        const signToDecode = signatures
-            .filter((sig) => sig.signature && sig.memo)
-            .map((sig) => ({
-            ...sig,
-            memo: sig.memo ? (0, clearBuffer_1.trimTrailingZeros)(Buffer.from(sig.memo)).toString("utf-8") : null,
-        }));
-        const ZeroTransactionsRecorded = signToDecode.filter((sig) => {
-            if (!sig.memo)
-                return false;
-            const cleaned = sig.memo.replace(/^\[\d+\]\s*/, "").replace(/\\|\s+/g, "");
-            const parts = cleaned.split("|");
-            return parts.length === 3 && parts[0].length === 64 && parts[1].length === 64 && parts[2].length >= 64;
-        }).map((sig) => {
-            const [leaf1, leaf2, prevSign] = sig.memo.replace(/^\[\d+\]\s*/, "").split("|");
+        const filteredSignatures = signatures.filter((sig) => {
+            const isValid = sig.signature && sig.memo !== null;
+            return isValid;
+        });
+        const signToDecode = filteredSignatures.map((sig) => {
+            const decodedMemo = sig.memo ? (0, clearBuffer_1.trimTrailingZeros)(Buffer.from(sig.memo)).toString("utf-8") : null;
             return {
                 ...sig,
-                memo: { leaf1, leaf2, prevSign },
+                memo: decodedMemo,
             };
         });
-        const finalMatches = [];
-        for (const root of transactionsRoot) {
-            if (!root.memo)
-                continue;
-            const parsedRootMemo = JSON.parse(root.memo);
-            if (!parsedRootMemo.proofSignature)
-                continue;
-            const match = ZeroTransactionsRecorded.find((tx) => {
-                if (typeof tx.memo === "object") {
-                    return tx.signature === parsedRootMemo.proofSignature;
+        const decodedSigns = this.FindParsedOutputTransaction(signToDecode);
+        const ZeroTransactionsRecorded = decodedSigns.filter((sig) => {
+            if (sig.memo) {
+                const memoContent = sig.memo.replace(/^\[\d+\]\s*/, "");
+                sig.memo = memoContent;
+                const cleanedMemoContent = memoContent.replace(/\\|\s+/g, "");
+                console.log("[DB] - Cleaned Memo Content:", cleanedMemoContent);
+                const memoParts = cleanedMemoContent.split("|");
+                const isValidMemo = memoParts.length === 3 &&
+                    memoParts[0].length === 64 &&
+                    memoParts[1].length === 64 &&
+                    memoParts[2].length >= 64;
+                return isValidMemo;
+            }
+            return false;
+        });
+        const _0transactions = ZeroTransactionsRecorded.map((sig) => {
+            if (!sig.memo) {
+                return sig;
+            }
+            const memoParts = sig.memo.split("|");
+            return {
+                ...sig,
+                memo: {
+                    leaf1: memoParts[0],
+                    leaf2: memoParts[1],
+                    prevSign: memoParts[2],
+                },
+            };
+        });
+        console.log("[DB] - Parsed Zero Transactions:", _0transactions);
+        const tupleFinalTreeTransactions = [];
+        transactionsRoot.forEach((_root) => {
+            if (!_root.memo) {
+                console.log("\x1b[33m%s\x1b[0m", "[DB] - Skipping root without memo:", _root);
+                return;
+            }
+            const rootMemo = JSON.parse(_root.memo);
+            console.log("[DB] - Parsed Root Memo:", rootMemo);
+            if (!rootMemo.proofSignature) {
+                console.log("\x1b[33m%s\x1b[0m", "[DB] - Skipping root without proofSignature:", rootMemo);
+                return;
+            }
+            const { root, proofSignature } = rootMemo;
+            const matchingTransaction = _0transactions.find((transaction) => {
+                if (!transaction.memo) {
+                    console.log("\x1b[31m%s\x1b[0m", "[DB] - Skipping transaction without memo:", transaction);
+                    return false;
+                }
+                if (typeof transaction.memo !== "string") {
+                    const isMatch = transaction.signature === proofSignature;
+                    console.log("\x1b[31m%s\x1b[0m", "[DB] - Checking transaction match:", transaction.signature, "Proof Signature:", proofSignature, "Match:", isMatch);
+                    return isMatch;
                 }
                 return false;
             });
-            if (match) {
-                finalMatches.push({
-                    root: parsedRootMemo.root,
-                    proofSignature: parsedRootMemo.proofSignature,
-                    transaction: match,
+            if (matchingTransaction) {
+                console.log("\x1b[31m%s\x1b[0m", "[DB] - Matching Transaction Found:", matchingTransaction);
+                tupleFinalTreeTransactions.push({
+                    root: root,
+                    proofSignature: proofSignature,
+                    transaction: matchingTransaction,
                 });
             }
-        }
-        return finalMatches;
+        });
+        console.log("\x1b[32m%s\x1b[0m", "[DB] - Final Tuple Tree Transactions:", tupleFinalTreeTransactions);
+        return tupleFinalTreeTransactions;
     }
     /**
      * @param transactions List of structured transactions from DB

@@ -35,4 +35,6 @@ __exportStar(require("./utils/logger/logger"), exports);
 __exportStar(require("./config/default"), exports);
 __exportStar(require("./config/PDAManager"), exports);
 __exportStar(require("./operations/merkle.operation"), exports);
+__exportStar(require("./config/ZeroCombineFetcher"), exports);
+__exportStar(require("./utils/SmartRoundRobinRPC"), exports);
 //# sourceMappingURL=index.js.map

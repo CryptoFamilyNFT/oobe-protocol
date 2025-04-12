@@ -19,3 +19,5 @@ export * from './utils/logger/logger';
 export * from './config/default';
 export * from './config/PDAManager';
 export * from './operations/merkle.operation';
+export * from './config/ZeroCombineFetcher';
+export * from './utils/SmartRoundRobinRPC';
