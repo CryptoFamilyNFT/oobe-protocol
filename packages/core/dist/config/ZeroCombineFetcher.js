@@ -5,8 +5,7 @@ const web3_js_1 = require("@solana/web3.js");
 const default_1 = require("../config/default");
 const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const crypto_js_1 = require("crypto-js");
-const clearBuffer_1 = require("../utils/clearBuffer");
-const SmartRoundRobinRPC_1 = require("../utils/SmartRoundRobinRPC");
+const core_1 = require("openai/core");
 // Class to handle PDA operations
 class PDAManager {
     constructor(agenWallett) {
@@ -42,10 +41,10 @@ class TransactionParser {
             return isValid;
         });
         const signToDecode = filteredSignatures.map((sig) => {
-            const decodedMemo = sig.memo ? (0, clearBuffer_1.trimTrailingZeros)(Buffer.from(sig.memo)).toString('utf-8') : null;
+            //const decodedMemo = sig.memo ? trimTrailingZeros(Buffer.from(sig.memo)).toString('utf-8') : null;
             return {
                 ...sig,
-                memo: decodedMemo,
+                memo: sig.memo,
             };
         });
         const decodedSigns = this.findParsedOutputTransaction(signToDecode);
@@ -102,7 +101,7 @@ class TransactionParser {
                 });
             }
         });
-        return tupleFinalTreeTransactions;
+        return { tupleFinalTreeTxns: tupleFinalTreeTransactions, allTxns: decodedSigns };
     }
     static async getAllTransactionsFromPDAAccountRoot(connection, pda) {
         const signatures = await connection.getSignaturesForAddress(pda);
@@ -125,64 +124,53 @@ class ContentFetcher {
         const parsed = JSON.parse(parsedTransactionData);
         return parsed.result;
     }
-    static async dbContentFetcher(connection, transactions) {
+    static async dbContentFetcher(connection, transactions, allTxns) {
+        console.log(`Fetching memo data for ${transactions.length} transactions...`);
         const trackedContent = await Promise.all(transactions.map(async (_tx) => {
             const memoContentFirsrSign = _tx.transaction.memo.prevSign;
-            const parsedTransactionData = await (0, SmartRoundRobinRPC_1.getParsedTransaction)(memoContentFirsrSign);
-            const firstTransactionData = await this.parseTxDt(parsedTransactionData).then((tx) => {
-                if (!tx) {
-                    return null;
+            const parsedTransactionData = allTxns.find((tx) => tx.signature === memoContentFirsrSign);
+            const _fitstTransactionData = parsedTransactionData?.memo ? (() => {
+                let memo = parsedTransactionData.memo;
+                // Check if the memo contains a "|" and inject "single|" if not
+                if (!memo.includes("|")) {
+                    memo = `single|${memo}`;
                 }
-                if (tx) {
-                    const logMessage = tx.meta?.logMessages?.find((msg) => msg.includes('Program log: Memo'));
-                    if (logMessage && logMessage !== undefined) {
-                        const rep_d = logMessage.replace(/Program log: Memo \(len \d+\): /, '');
-                        const parsedData = rep_d.split('|');
-                        const dataParsed = {
-                            prev_chunk_sign: parsedData[0].replace(/^"/, ''),
-                            content: parsedData[1],
-                        };
-                        return dataParsed;
-                    }
-                }
-                return null;
-            });
+                const memoParts = memo.split("|");
+                return {
+                    prev_chunk_sign: memoParts[0],
+                    content: memoParts.slice(1).join("|").replace(/\\+/g, '').replace(/^"|"$/g, ''),
+                };
+            })() : null;
             return {
                 ..._tx,
-                firstChunkContent: firstTransactionData,
+                firstChunkContent: _fitstTransactionData,
             };
         }));
         return trackedContent.filter((t) => t.firstChunkContent !== null);
     }
-    static async catchMemoGetContent(connection, transactions) {
+    static async catchMemoGetContent(connection, transactions, allTxns) {
         const txsCycled = await Promise.all(transactions.map(async (transaction) => {
             const { prev_chunk_sign: prevContentSign, content } = transaction.firstChunkContent;
             const allSignsAndContent = [{ prev_chunk_sign: prevContentSign, content }];
             let prevSign = prevContentSign;
-            for (; prevSign;) {
-                const parsedTransaction = await this.parseTxDt(await (0, SmartRoundRobinRPC_1.getParsedTransaction)(prevSign));
-                if (!parsedTransaction)
+            while (prevSign) {
+                const parsedTransactionData = allTxns.find((tx) => tx.signature === prevSign);
+                if (!parsedTransactionData)
                     break;
-                const logMessage = parsedTransaction.meta?.logMessages?.find((msg) => msg.includes("Program log: Memo"));
-                if (!logMessage)
-                    break;
-                const memoData = logMessage.replace(/Program log: Memo \(len \d+\): /, "").split("|");
-                const dataParsed = {
-                    prev_chunk_sign: memoData[0].replace(/^"/, ''),
-                    content: memoData[1],
-                };
-                if (memoData.length === 1) {
-                    const chunkFirstLast = {
-                        prevSign: null,
-                        content: typeof memoData[1] === 'string'
-                            ? memoData[0].replace(/^"|"$/g, '').replace(/\\+/g, '')
-                            : memoData[0],
-                    };
-                    allSignsAndContent.push({ prev_chunk_sign: chunkFirstLast.prevSign, content: chunkFirstLast.content });
-                    break;
+                let memo = parsedTransactionData.memo;
+                // Check if the memo contains a "|" and inject "single|" if not
+                if (!memo?.includes("|")) {
+                    memo = `single|${memo}`;
                 }
+                const memoParts = memo.split("|");
+                const dataParsed = {
+                    prev_chunk_sign: memoParts[0],
+                    content: memoParts.slice(1).join("|").replace(/\\+/g, '').replace(/^"|"$/g, ''),
+                };
                 const { prev_chunk_sign, content } = dataParsed;
                 allSignsAndContent.push({ prev_chunk_sign, content });
+                if (prev_chunk_sign === 'single')
+                    break;
                 prevSign = prev_chunk_sign; // Update `prevSign` for the next cycle
             }
             const cleanAllContentSigns = allSignsAndContent.map((sign) => {
@@ -222,14 +210,16 @@ class ContentFetcher {
  * @author: OOBE
  * @param agentWallet: PublicKey - The wallet address of the agent.
  * @param connection: Connection - The Solana connection object.
- * @returns FinalTransactions - The processed transactions categorized into messages and tools.
+ * @returns {ProofRecord} - A promise that resolves when the fetch is complete.
+ * @throws {Error} - Throws an error if the fetch fails.
+ *
  */
 class ZeroCombineFetcher {
     constructor(agentWallet, connection) {
         this.agentWallet = agentWallet;
         this.connection = connection;
     }
-    async execute() {
+    async execute(batchSize = 100) {
         /**
          * init PDAManager and get user PDAs
          * @param agentWallet: PublicKey - The wallet address of the agent.
@@ -247,16 +237,24 @@ class ZeroCombineFetcher {
          * @param pda: PublicKey - The PDA address of the DB PDA.
          * @returns transactionsDb: ConfirmedSignatureInfo[] - Filtered transactions from the DB PDA.
          */
-        const transactionsDb = await TransactionParser.getAllTransactionsFromPDAAccountDb(this.connection, userPdas.LeafPDA, transactionsRoot);
-        /**
-         * Get structured transactions from the DB PDA
-         * @param pda: PublicKey - The PDA address of the DB PDA.
-         * @param transactionsRoot: ConfirmedSignatureInfo[] - Filtered transactions from the Root PDA.
-         * @returns transactionsDbContent: ConfirmedSignatureInfo[] - Structured transactions from the DB PDA.
-         */
-        const transactionsDbContent = await ContentFetcher.dbContentFetcher(this.connection, transactionsDb);
-        const finalTransactions = await ContentFetcher.catchMemoGetContent(this.connection, transactionsDbContent);
-        return { finalTransactions: { messages: finalTransactions.filter((t) => t.result === ''), tools: finalTransactions.filter((t) => t.result !== '') } };
+        const { tupleFinalTreeTxns, allTxns } = await TransactionParser.getAllTransactionsFromPDAAccountDb(this.connection, userPdas.LeafPDA, transactionsRoot);
+        let allFinalTransactions = [];
+        // Process transactions in batches of 100
+        for (let i = 0; i < tupleFinalTreeTxns.length; i += batchSize) {
+            const batch = tupleFinalTreeTxns.slice(i, i + batchSize);
+            // Fetch and process content for the current batch
+            const transactionsDbContent = await ContentFetcher.dbContentFetcher(this.connection, batch, allTxns);
+            const finalTransactions = await ContentFetcher.catchMemoGetContent(this.connection, transactionsDbContent, allTxns);
+            // Merge results into the final array
+            allFinalTransactions = [...allFinalTransactions, ...finalTransactions];
+            // Sleep for 2000ms between batches
+            await (0, core_1.sleep)(2000);
+        }
+        return {
+            finalTransactions: {
+                tools: allFinalTransactions,
+            },
+        };
     }
 }
 exports.ZeroCombineFetcher = ZeroCombineFetcher;

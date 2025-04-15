@@ -1,60 +1,105 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getParsedTransaction = getParsedTransaction;
+exports.getBlock = getBlock;
 const rpc_transport_http_1 = require("@solana/rpc-transport-http");
-// Crea i trasporti per ogni server RPC
-const transports = [
-    (0, rpc_transport_http_1.createHttpTransport)({ url: 'https://api.mainnet-beta.solana.com' }),
-    (0, rpc_transport_http_1.createHttpTransport)({ url: 'https://solana-rpc.publicnode.com' }),
-    (0, rpc_transport_http_1.createHttpTransport)({ url: 'https://solana.drpc.org/' }),
+const rpcQueue_1 = require("./helpers/rpc/rpcQueue");
+const logger_1 = __importDefault(require("./logger/logger"));
+const transportUrls = [
+    'https://api.mainnet-beta.solana.com',
+    'https://solana-rpc.publicnode.com',
+    'https://solana.drpc.org/',
+    'https://go.getblock.io/4136d34f90a6488b84214ae26f0ed5f4',
+    'https://api.blockeden.xyz/solana/67nCBdZQSH9z3YqDDjdm',
+    'https://solana.leorpc.com/?api_key=FREE',
+    'https://endpoints.omniatech.io/v1/sol/mainnet/public',
 ];
-// Funzione che distribuisce le richieste tra i trasporti
-let nextTransport = 0;
-async function roundRobinTransport(...args) {
-    const transport = transports[nextTransport];
-    nextTransport = (nextTransport + 1) % transports.length;
-    return await transport(...args);
-}
-// Funzione di retry con logica esponenziale
-const MAX_ATTEMPTS = 10;
-// Sleep function to wait for a given number of milliseconds
+const transports = transportUrls.map(url => {
+    new logger_1.default().info(`Using transport: ${url}`);
+    return (0, rpc_transport_http_1.createHttpTransport)({ url }); // timeout per evitare nodi lenti
+});
+// ----------------------
+// Utils
+// ----------------------
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-// Calculate the delay for a given attempt
-function calculateRetryDelay(attempt) {
-    // Exponential backoff with a maximum of 1.5 seconds
-    return Math.min(100 * Math.pow(2, attempt), 1500);
+function calculateRetryDelay(attempt, is429 = false) {
+    const base = is429 ? 1000 : 100;
+    return Math.min(base * Math.pow(2, attempt), 5000); // fino a 5s per 429
 }
-async function retryingTransport(...args) {
-    let requestError;
-    for (let attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
+const MAX_ATTEMPTS = 5;
+// ----------------------
+// Core: parallel race
+// ----------------------
+async function fastRaceTransport(...args) {
+    const errors = [];
+    return new Promise((resolve, reject) => {
+        let pending = transports.length;
+        transports.forEach(transport => {
+            transport(...args)
+                .then(response => {
+                return resolve(response);
+            })
+                .catch(error => {
+                errors.push(error);
+                pending--;
+                if (pending === 0) {
+                    reject(new Error('All transports failed:\n' + errors.map(e => e.message).join('\n')));
+                }
+            });
+        });
+    });
+}
+// ----------------------
+// Retry intelligente
+// ----------------------
+async function retryingFastTransport(...args) {
+    let lastError;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         try {
-            return await roundRobinTransport(...args);
+            return await fastRaceTransport(...args);
         }
         catch (err) {
-            requestError = err;
-            // Solo se ci sono tentativi rimasti, dormiamo prima di riprovare
-            if (attempts < MAX_ATTEMPTS - 1) {
-                const retryDelay = calculateRetryDelay(attempts);
-                await sleep(retryDelay);
-            }
+            lastError = err;
+            const isTooManyRequests = (err?.message || '').includes('429');
+            const retryDelay = calculateRetryDelay(attempt, isTooManyRequests);
+            await sleep(retryDelay);
         }
     }
-    throw requestError;
+    throw lastError;
 }
-// Uso del trasporto con retry e round-robin
+// ----------------------
+// Uso finale
+// ----------------------
 async function getParsedTransaction(txSignature) {
-    const payload = {
-        id: 1,
-        jsonrpc: '2.0',
-        method: 'getTransaction',
-        params: [txSignature],
-    };
-    const response = await retryingTransport({
-        payload,
+    return await rpcQueue_1.rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getTransaction',
+            params: [txSignature],
+        };
+        await sleep(500);
+        const response = await retryingFastTransport({ payload });
+        const data = JSON.stringify(response);
+        return data;
     });
-    const data = JSON.stringify(response);
-    return data;
+}
+async function getBlock(slot, maxSupportedTransactionVersion = 0) {
+    return await rpcQueue_1.rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getBlock',
+            params: [slot, { maxSupportedTransactionVersion: maxSupportedTransactionVersion }],
+        };
+        const response = await retryingFastTransport({ payload });
+        const data = JSON.stringify(response);
+        return data;
+    });
 }
 //# sourceMappingURL=SmartRoundRobinRPC.js.map

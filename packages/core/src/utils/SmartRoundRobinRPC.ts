@@ -1,68 +1,124 @@
 import { RpcTransport } from '@solana/rpc-spec';
 import { RpcResponse } from '@solana/rpc-spec-types';
 import { createHttpTransport } from '@solana/rpc-transport-http';
+import { rpcQueue } from './helpers/rpc/rpcQueue';
+import { log } from 'console';
+import Logger from './logger/logger';
 
-// Crea i trasporti per ogni server RPC
-const transports = [
-    createHttpTransport({ url: 'https://api.mainnet-beta.solana.com' }),
-    createHttpTransport({ url: 'https://solana-rpc.publicnode.com' }),
-    createHttpTransport({ url: 'https://solana.drpc.org/' }),
+const transportUrls = [
+    'https://api.mainnet-beta.solana.com',
+    'https://solana-rpc.publicnode.com',
+    'https://solana.drpc.org/',
+    'https://go.getblock.io/4136d34f90a6488b84214ae26f0ed5f4',
+    'https://api.blockeden.xyz/solana/67nCBdZQSH9z3YqDDjdm',
+    'https://solana.leorpc.com/?api_key=FREE',
+    'https://endpoints.omniatech.io/v1/sol/mainnet/public',
+
 ];
 
-// Funzione che distribuisce le richieste tra i trasporti
-let nextTransport = 0;
-async function roundRobinTransport<TResponse>(...args: Parameters<RpcTransport>): Promise<RpcResponse<TResponse>> {
-    const transport = transports[nextTransport];
-    nextTransport = (nextTransport + 1) % transports.length;
-    return await transport(...args);
-}
+const transports = transportUrls.map(url => {
+    new Logger().info(`Using transport: ${url}`);
+    return createHttpTransport({ url }) // timeout per evitare nodi lenti
+});
 
-// Funzione di retry con logica esponenziale
-const MAX_ATTEMPTS = 10;
+// ----------------------
+// Utils
+// ----------------------
 
-// Sleep function to wait for a given number of milliseconds
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Calculate the delay for a given attempt
-function calculateRetryDelay(attempt: number): number {
-  // Exponential backoff with a maximum of 1.5 seconds
-  return Math.min(100 * Math.pow(2, attempt), 1500);
+function calculateRetryDelay(attempt: number, is429 = false): number {
+    const base = is429 ? 1000 : 100;
+    return Math.min(base * Math.pow(2, attempt), 5000); // fino a 5s per 429
+}
+
+const MAX_ATTEMPTS = 5;
+
+// ----------------------
+// Core: parallel race
+// ----------------------
+
+async function fastRaceTransport<TResponse>(...args: Parameters<RpcTransport>): Promise<RpcResponse<TResponse>> {
+    const errors: any[] = [];
+
+    return new Promise<RpcResponse<TResponse>>((resolve, reject) => {
+        let pending = transports.length;
+
+        transports.forEach(transport => {
+            transport(...args)
+                .then(response => {
+                    return resolve(response as RpcResponse<TResponse>);
+                })
+                .catch(error => {
+                    errors.push(error);
+                    pending--;
+                    if (pending === 0) {
+                        reject(new Error('All transports failed:\n' + errors.map(e => e.message).join('\n')));
+                    }
+                });
+        });
+    });
 }
 
 
-async function retryingTransport<TResponse>(...args: Parameters<RpcTransport>): Promise<RpcResponse<TResponse>> {
-    let requestError;
-    for (let attempts = 0; attempts < MAX_ATTEMPTS; attempts++) {
+// ----------------------
+// Retry intelligente
+// ----------------------
+
+async function retryingFastTransport<TResponse>(...args: Parameters<RpcTransport>): Promise<RpcResponse<TResponse>> {
+    let lastError;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         try {
-            return await roundRobinTransport(...args);
-        } catch (err) {
-            requestError = err;
-            // Solo se ci sono tentativi rimasti, dormiamo prima di riprovare
-            if (attempts < MAX_ATTEMPTS - 1) {
-                const retryDelay = calculateRetryDelay(attempts);
-                await sleep(retryDelay);
-            }
+            return await fastRaceTransport(...args);
+        } catch (err: any) {
+            lastError = err;
+
+            const isTooManyRequests = (err?.message || '').includes('429');
+            const retryDelay = calculateRetryDelay(attempt, isTooManyRequests);
+
+            await sleep(retryDelay);
         }
     }
-    throw requestError;
+
+    throw lastError;
 }
 
-// Uso del trasporto con retry e round-robin
-export async function getParsedTransaction(txSignature: string) {
-  const payload = {
-      id: 1,
-      jsonrpc: '2.0',
-      method: 'getTransaction',
-      params: [txSignature],
-  };
+// ----------------------
+// Uso finale
+// ----------------------
 
-  const response = await retryingTransport({
-      payload,
-  });
+export async function getParsedTransaction(txSignature: string): Promise<string> {
+    return await rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getTransaction',
+            params: [txSignature],
+        };
 
-  const data = JSON.stringify(response as {});
-  return data;
+        await sleep(500);
+        const response = await retryingFastTransport({ payload });
+
+        const data = JSON.stringify(response);
+        return data;
+    });
 }
 
+export async function getBlock(slot: string, maxSupportedTransactionVersion: number = 0): Promise<string> {
+    return await rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getBlock',
+            params: [slot, { maxSupportedTransactionVersion: maxSupportedTransactionVersion }],
+        };
+
+        const response = await retryingFastTransport({ payload });
+
+        const data = JSON.stringify(response);
+        return data;
+    });
+}
