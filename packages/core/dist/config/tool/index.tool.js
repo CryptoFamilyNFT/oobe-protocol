@@ -1,9 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSolanaTools = createSolanaTools;
+const kamino_operation_1 = require("../../operations/kamino/kamino.operation");
 const close_perp_tool_1 = require("./adrena/close_perp.tool");
 const open_perp_tool_1 = require("./adrena/open_perp.tool");
 const createImage_tool_1 = require("./agent/createImage.tool");
+const kaminoClaimRewards_tool_1 = require("./kamino/kaminoClaimRewards.tool");
+const kaminoDepositShares_tool_1 = require("./kamino/kaminoDepositShares.tool");
+const kaminoGetAllStrategies_tool_1 = require("./kamino/kaminoGetAllStrategies.tool");
+const kaminoGetAssociateTokens_tools_1 = require("./kamino/kaminoGetAssociateTokens.tools");
+const kaminoGetCustomStrategy_tool_1 = require("./kamino/kaminoGetCustomStrategy.tool");
+const kaminoGetHolders_tool_1 = require("./kamino/kaminoGetHolders.tool");
+const kaminoGetSharePriceStrategy_tool_1 = require("./kamino/kaminoGetSharePriceStrategy.tool");
+const kaminoWithdrawShares_tool_1 = require("./kamino/kaminoWithdrawShares.tool");
+const keminoCreateMemoWithStrategy_tool_1 = require("./kamino/keminoCreateMemoWithStrategy.tool");
 const IQimageInscription_tool_1 = require("./iq/IQimageInscription.tool");
 const IQTextInscription_tool_1 = require("./iq/IQTextInscription.tool");
 const buyTokenJup_1 = require("./jup/buyTokenJup");
@@ -16,6 +26,7 @@ const orca_pos_close_tool_1 = require("./orca/orca_pos_close.tool");
 const createTokenPF_1 = require("./pumpfun/createTokenPF");
 const buyTokenRay_1 = require("./ray/buyTokenRay");
 const sellTokenRay_1 = require("./ray/sellTokenRay");
+const singularity_tool_1 = require("./singularity/singularity.tool");
 const balance_tool_1 = require("./solana/balance.tool");
 const balance_all_tool_1 = require("./solana/balance_all.tool");
 const balance_of_tool_1 = require("./solana/balance_of.tool");
@@ -26,6 +37,7 @@ const tps_tool_1 = require("./solana/tps.tool");
 const transfer_tool_1 = require("./solana/transfer.tool");
 const bufferInput_tool_1 = require("./utils/bufferInput.tool");
 async function createSolanaTools(agent) {
+    const kamino = new kamino_operation_1.kaminoOperations(agent);
     return [
         new balance_of_tool_1.SolanaBalanceOtherTool(agent),
         new balance_tool_1.SolanaBalanceTool(agent),
@@ -50,7 +62,17 @@ async function createSolanaTools(agent) {
         new orca_create_clmm_tool_1.orcaCreateClmm(agent),
         new orca_fetch_position_tool_1.orcaFetchPositionTool(agent),
         new buyTokenJup_1.JupiterBuyTokenTool(agent),
-        new sellTokenJup_1.JupiterSellTokenTool(agent)
+        new sellTokenJup_1.JupiterSellTokenTool(agent),
+        new singularity_tool_1.AgentAwarenessTool(agent),
+        new kaminoGetAllStrategies_tool_1.GetAllKaminoStrategiesTool(kamino),
+        new kaminoGetCustomStrategy_tool_1.GetKaminoCustomStrategyTool(kamino),
+        new kaminoGetSharePriceStrategy_tool_1.GetKaminoSharePriceTool(kamino),
+        new kaminoGetHolders_tool_1.GetKaminoHoldersTool(kamino),
+        new kaminoDepositShares_tool_1.DepositSharesTool(kamino),
+        new kaminoWithdrawShares_tool_1.WithdrawSharesTool(kamino), // ✅ Aggiunto
+        new kaminoClaimRewards_tool_1.ClaimRewardsTool(kamino), // ✅ Aggiunto
+        new keminoCreateMemoWithStrategy_tool_1.CreateMemoWithStrategyKeyTool(kamino),
+        new kaminoGetAssociateTokens_tools_1.GetAssociatedForTokensAndSharesTool(kamino),
     ];
 }
 //# sourceMappingURL=index.tool.js.map

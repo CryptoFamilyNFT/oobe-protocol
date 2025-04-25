@@ -3,7 +3,7 @@ import {
   getTokenMetadata as gTMeta,
   getMint,
   TOKEN_2022_PROGRAM_ID,
-} from "@solana/spl-token";
+} from "spl-v1";
 
 export async function getTokenMetadata(
   connection: Connection,

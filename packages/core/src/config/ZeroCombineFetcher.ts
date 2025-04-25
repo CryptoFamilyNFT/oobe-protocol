@@ -2,15 +2,12 @@ import { ConfirmedSignatureInfo, Connection, ParsedTransactionWithMeta, PublicKe
 import { ConfigManager } from "../config/default";
 import { SYSTEM_PROGRAM_ID } from "@raydium-io/raydium-sdk-v2";
 import { SHA256 } from "crypto-js";
-import { trimTrailingZeros } from "../utils/clearBuffer";
 import { ZeroChunk } from "../operations/merkle.operation";
 import { sleep } from "openai/core";
-import { getParsedTransaction } from "../utils/SmartRoundRobinRPC";
-import { all } from "axios";
 import { ProofRecord } from "../types/agent.interface";
 
 interface FinalTransactions {
-    tools: any[];
+    tools: ProofRecord[];
 }
 
 

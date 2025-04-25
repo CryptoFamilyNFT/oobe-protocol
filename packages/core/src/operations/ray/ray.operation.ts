@@ -1,4 +1,3 @@
-import { getOrCreateAssociatedTokenAccount, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Agent } from "../../agent/Agents";
 import { ApiPoolInfoV4, ApiV3PoolInfoBaseItem, BasicPoolInfo, LiquidityPoolKeys, MARKET_STATE_LAYOUT_V3, OPEN_BOOK_PROGRAM, parseTokenAccountResp, Percent, PoolAccountInfoV4, Raydium, toFeeConfig, Token, TokenAccount, TokenAccountRaw, TokenAmount, API_URLS, publicKey, struct, LiquidityStateV4, getAssociatedAuthority, Market, liquidityStateV4Layout, LIQUIDITY_POOL_PROGRAM_ID_V5_MODEL } from "@raydium-io/raydium-sdk-v2";
 import { Connection, PublicKey, Signer, Transaction, VersionedTransaction, sendAndConfirmTransaction } from "@solana/web3.js";
@@ -7,7 +6,8 @@ import { filterRayMainnet } from "../filterRayMainnet";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { sleep } from "openai/core";
 import { SwapCompute } from "../../types/ray.interface";
-import { getMint } from "@solana/spl-token";
+import { NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "spl-v1";
+import { getOrCreateAssociatedTokenAccount, getMint } from 'spl-v1';
 
 export class RayOperation {
     private agent: Agent;

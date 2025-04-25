@@ -11,6 +11,20 @@ import { MerkleValidatorResult } from "../utils/merkleValidator";
 import { MerkleTreeManager } from "../operations/merkle.operation";
 import { ResponseMessage } from "../types/agent.interface";
 import { JupiterSwap } from "../operations/jup/jup.operation";
+/**
+ * @name Agent
+ * @class Agent
+ * @description This class represents an agent that interacts with the Solana blockchain and performs various operations.
+ * @constructor
+ * @param {IOfficialEndpoint} solanaEndpoint - The Solana endpoint to connect to.
+ * @param {string} privateKey - The private key of the agent's wallet.
+ * @param {string} openKey - The OpenAI API key for AI operations.
+ * @param {Logger} logger - The logger instance for logging messages.
+ * @returns {Agent} - An instance of the Agent class.
+ * @throws {Error} - Throws an error if the agent fails to initialize or perform operations.
+ * @example
+ * const agent = new Agent(solanaEndpoint, privateKey, openKey, logger);
+ */
 export declare class Agent {
     private solanaOps;
     private logger;
@@ -32,7 +46,7 @@ export declare class Agent {
     start(): Promise<void>;
     shutdown(): Promise<void>;
     getSolanaOperations(): SolanaOperations;
-    registerActions(actions: Action[]): Promise<(import("../config/tool/adrena/close_perp.tool").PerpCloseTradeTool | import("../config/tool/adrena/open_perp.tool").PerpOpenTradeTool | import("..").SolanaCreateImageTool | import("../config/tool/iq/IQimageInscription.tool").SolanaIQImageTool | import("../config/tool/iq/IQTextInscription.tool").SolanaIQTextTool | import("../config/tool/jup/buyTokenJup").JupiterBuyTokenTool | import("../config/tool/jup/sellTokenJup").JupiterSellTokenTool | import("../config/tool/oobe/token_2022.tool").createToken2022Tool | import("../config/tool/orca/orca_create_clmm.tool").orcaCreateClmm | import("../config/tool/orca/orca_create_ss_lp").orcaCreateSsLp | import("../config/tool/orca/orca_fetch_position.tool").orcaFetchPositionTool | import("../config/tool/orca/orca_pos_close.tool").orcaClosePositionTool | import("../config/tool/pumpfun/createTokenPF").SolanaPumpfunTokenLaunchTool | import("../config/tool/ray/buyTokenRay").RaydiumBuyTokenTool | import("../config/tool/ray/sellTokenRay").RaydiumSellTokenTool | import("../config/tool/solana/balance.tool").SolanaBalanceTool | import("../config/tool/solana/balance_all.tool").balanceAllTokensOwnedTool | import("../config/tool/solana/balance_of.tool").SolanaBalanceOtherTool | import("../config/tool/solana/check_tokens.tool").CheckTokensRugTool | import("../config/tool/solana/close_empty_account.tool").SolanaCloseEmptyTokenAccounts | import("../config/tool/solana/fetch_agent_wallet").FetchAgentKeypair | import("../config/tool/solana/tps.tool").SolanaTPSCalculatorTool | import("../config/tool/solana/transfer.tool").SolanaTransferTool | import("../config/tool/utils/bufferInput.tool").BufferInputTool)[]>;
+    registerActions(actions: Action[]): Promise<(import("../config/tool/adrena/close_perp.tool").PerpCloseTradeTool | import("../config/tool/adrena/open_perp.tool").PerpOpenTradeTool | import("..").SolanaCreateImageTool | import("../config/tool/kamino/kaminoClaimRewards.tool").ClaimRewardsTool | import("../config/tool/kamino/kaminoDepositShares.tool").DepositSharesTool | import("../config/tool/kamino/kaminoGetAllStrategies.tool").GetAllKaminoStrategiesTool | import("../config/tool/kamino/kaminoGetAssociateTokens.tools").GetAssociatedForTokensAndSharesTool | import("../config/tool/kamino/kaminoGetCustomStrategy.tool").GetKaminoCustomStrategyTool | import("../config/tool/kamino/kaminoGetHolders.tool").GetKaminoHoldersTool | import("../config/tool/kamino/kaminoGetSharePriceStrategy.tool").GetKaminoSharePriceTool | import("../config/tool/kamino/kaminoWithdrawShares.tool").WithdrawSharesTool | import("../config/tool/kamino/keminoCreateMemoWithStrategy.tool").CreateMemoWithStrategyKeyTool | import("../config/tool/iq/IQimageInscription.tool").SolanaIQImageTool | import("../config/tool/iq/IQTextInscription.tool").SolanaIQTextTool | import("../config/tool/jup/buyTokenJup").JupiterBuyTokenTool | import("../config/tool/jup/sellTokenJup").JupiterSellTokenTool | import("../config/tool/oobe/token_2022.tool").createToken2022Tool | import("../config/tool/orca/orca_create_clmm.tool").orcaCreateClmm | import("../config/tool/orca/orca_create_ss_lp").orcaCreateSsLp | import("../config/tool/orca/orca_fetch_position.tool").orcaFetchPositionTool | import("../config/tool/orca/orca_pos_close.tool").orcaClosePositionTool | import("../config/tool/pumpfun/createTokenPF").SolanaPumpfunTokenLaunchTool | import("../config/tool/ray/buyTokenRay").RaydiumBuyTokenTool | import("../config/tool/ray/sellTokenRay").RaydiumSellTokenTool | import("../config/tool/singularity/singularity.tool").AgentAwarenessTool | import("../config/tool/solana/balance.tool").SolanaBalanceTool | import("../config/tool/solana/balance_all.tool").balanceAllTokensOwnedTool | import("../config/tool/solana/balance_of.tool").SolanaBalanceOtherTool | import("../config/tool/solana/check_tokens.tool").CheckTokensRugTool | import("../config/tool/solana/close_empty_account.tool").SolanaCloseEmptyTokenAccounts | import("../config/tool/solana/fetch_agent_wallet").FetchAgentKeypair | import("../config/tool/solana/tps.tool").SolanaTPSCalculatorTool | import("../config/tool/solana/transfer.tool").SolanaTransferTool | import("../config/tool/utils/bufferInput.tool").BufferInputTool)[]>;
     executeAction(actionName: string, input: Record<string, any>): Promise<Record<string, any>>;
     genAi(): ChatOpenAI<ChatOpenAICallOptions>;
     getOobeAgent(): Promise<ChatOpenAI<ChatOpenAICallOptions>>;

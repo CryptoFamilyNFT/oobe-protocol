@@ -71,6 +71,13 @@ const createImageAction: Action = {
       const { prompt, model, size } = input;
       const response = await create_image(agent, prompt, model, size);
 
+      if (!response || !response.images || response.images.length === 0) {
+        return {
+          status: "error",
+          message: "No images generated. Please try again.",
+        };
+      }
+
       return {
         status: "success",
         imageUrl: response.images[0].url,

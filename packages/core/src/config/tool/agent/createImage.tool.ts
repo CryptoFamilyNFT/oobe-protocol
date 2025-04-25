@@ -7,7 +7,7 @@ export class SolanaCreateImageTool extends Tool {
   description =
     "Create an image using OpenAI's DALL-E. Input should be a string prompt for the image.";
 
-  constructor(private solanaKit: Agent) {
+  constructor(private agent: Agent) {
     super();
   }
 
@@ -20,7 +20,7 @@ export class SolanaCreateImageTool extends Tool {
   protected async _call(input: string): Promise<string> {
     try {
       this.validateInput(input);
-      const result = await create_image(this.solanaKit, input.trim());
+      const result = await create_image(this.agent, input.trim());
 
       return JSON.stringify({
         status: "success",

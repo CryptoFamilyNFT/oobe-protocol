@@ -1,14 +1,13 @@
 import { MerkleTree } from 'merkletreejs';
 import { SHA256 } from 'crypto-js';
-import { Action } from '../types/action.interface';
 import { MerkleValidatorResult } from '../utils/merkleValidator';
 import { Agent } from '../agent/Agents';
-import { ComputeBudgetProgram, Connection, PublicKey, sendAndConfirmTransaction, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID } from '@raydium-io/raydium-sdk-v2';
+import { ComputeBudgetProgram, Connection, Keypair, PublicKey, Signer, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { MEMO_PROGRAM_ID } from '@raydium-io/raydium-sdk-v2';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
-import Logger from '../utils/logger/logger';
 import { trimTrailingZeros } from '../utils/clearBuffer';
 import { ConfigManager } from '../config/default';
+import { getBlock, getLatestBlockhash, sendRawTransaction } from '../utils/SmartRoundRobinRPC';
 
 interface Event {
   id: string;
@@ -95,7 +94,6 @@ export class MerkleTreeManager {
       const originalData = JSON.parse(event.details);
       return originalData;
     } catch (error) {
-      console.error("Error parsing event details:", error);
       return null;
     }
   }
@@ -204,6 +202,7 @@ export class MerkleTreeManager {
     data: Buffer,
     connection: Connection,
     pda: PublicKey,
+    signer?: Keypair,
   ) {
     const instruction = SystemProgram.transfer({
       fromPubkey: wallet,
@@ -227,24 +226,22 @@ export class MerkleTreeManager {
     );
 
     transaction.feePayer = wallet;
-    const latestBlockhash = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = latestBlockhash.blockhash;
+    const latestBlockhash = await getLatestBlockhash();
 
-    const signer = new NodeWallet(this.agent.wallet);
+    if (typeof latestBlockhash !== 'string') {
+      transaction.recentBlockhash = latestBlockhash.blockhash;
+    }
 
+    //convert Wallet to NodeWallet
+    const nodeWallet = new NodeWallet(signer || this.agent.wallet);
     let signature;
 
     try {
-      // signature = await sendAndConfirmTransaction(connection, transaction, [signer.payer], {
-      //   skipPreflight: true,
-      //   commitment: 'processed', // Us
-      //   // e 'processed' for faster approval
-      // });
-      transaction.sign(signer.payer); 
+      transaction.partialSign(nodeWallet.payer); // Use the agent's wallet as a Signer
       const rawTx = transaction.serialize();
-      signature = await connection.sendRawTransaction(rawTx, {
+      signature = await sendRawTransaction(rawTx, {
         skipPreflight: true,
-        preflightCommitment: "processed", // facoltativo
+        preflightCommitment: "processed", // Optional
       });
     } catch (e: any) {
       const errorMessage = e.message || '';
@@ -404,7 +401,6 @@ export class MerkleTreeManager {
       dbAccountRoot,
     );
 
-    console.log("\x1b[32mMerkle root signature:\x1b[0m \x1b[36m" + signatureRoot + "\x1b[0m");
 
     return {
       dbAccountStore,

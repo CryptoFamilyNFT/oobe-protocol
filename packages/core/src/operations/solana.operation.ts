@@ -1,7 +1,7 @@
 import { Cluster, Connection, Keypair, ParsedAccountData, PublicKey, SystemProgram, Transaction, TransactionInstruction, clusterApiUrl } from '@solana/web3.js';
 import Logger, { ILogger } from '../utils/logger/logger';
 import { Agent } from '../agent/Agents';
-import { AccountLayout, createCloseAccountInstruction, createTransferInstruction, getAssociatedTokenAddress, getMint, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { AccountLayout, createCloseAccountInstruction, createTransferInstruction, getAssociatedTokenAddress, getMint, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from 'spl-v1';
 import bs58 from 'bs58';
 import {ConfigManager} from '../config/default';
 
@@ -13,7 +13,7 @@ export class SolanaOperations {
     public readonly wallet: PublicKey
 
     constructor(endpoint: string = "https://api.mainnet-beta.solana.com", privateKey: string) {
-        this.connection = new Connection(`https://withered-stylish-hill.solana-mainnet.quiknode.pro/3a015c2e56d1c88b224692f5c9d987b37adc1a32/`);
+        this.connection = new Connection(endpoint);
         this.logger = new Logger();
         this.wallet = Keypair.fromSecretKey(Uint8Array.from(bs58.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
@@ -34,9 +34,6 @@ export class SolanaOperations {
             return false;
         }
     }
-
-    
-
 
     /**
      * 
@@ -253,6 +250,7 @@ export class SolanaOperations {
     }
 
     public getConnection() {
+        console.log("Connection: ", this.connection);
         return this.connection;
     }
 

@@ -10,7 +10,7 @@ const decimal_js_1 = require("decimal.js");
 const whirlpools_sdk_1 = require("@orca-so/whirlpools-sdk");
 const common_sdk_1 = require("@orca-so/common-sdk");
 const instructions_1 = require("@orca-so/whirlpools-sdk/dist/instructions");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const tools_1 = require("langchain/tools");
 const orcaUtils_1 = require("../../../utils/orca/orcaUtils");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
@@ -150,7 +150,7 @@ class orcaCreateSsLp extends tools_1.Tool {
             const positionMintKeypair = web3_js_1.Keypair.generate();
             const positionMintPubkey = positionMintKeypair.publicKey;
             const positionPda = whirlpools_sdk_1.PDAUtil.getPosition(whirlpools_sdk_1.ORCA_WHIRLPOOL_PROGRAM_ID, positionMintPubkey);
-            const positionTokenAccountAddress = (0, spl_token_1.getAssociatedTokenAddressSync)(positionMintPubkey, wallet.publicKey, ctx.accountResolverOpts.allowPDAOwnerAddress, spl_token_1.TOKEN_2022_PROGRAM_ID);
+            const positionTokenAccountAddress = (0, spl_v1_1.getAssociatedTokenAddressSync)(positionMintPubkey, wallet.publicKey, ctx.accountResolverOpts.allowPDAOwnerAddress, spl_v1_1.TOKEN_2022_PROGRAM_ID);
             const params = {
                 funder: wallet.publicKey,
                 owner: wallet.publicKey,

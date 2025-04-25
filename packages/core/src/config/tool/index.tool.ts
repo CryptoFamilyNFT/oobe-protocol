@@ -1,7 +1,17 @@
 import { Agent } from "../../agent/Agents";
+import { kaminoOperations } from "../../operations/kamino/kamino.operation";
 import { PerpCloseTradeTool } from "./adrena/close_perp.tool";
 import { PerpOpenTradeTool } from "./adrena/open_perp.tool";
 import { SolanaCreateImageTool } from "./agent/createImage.tool";
+import { ClaimRewardsTool } from "./kamino/kaminoClaimRewards.tool";
+import { DepositSharesTool } from "./kamino/kaminoDepositShares.tool";
+import { GetAllKaminoStrategiesTool } from "./kamino/kaminoGetAllStrategies.tool";
+import { GetAssociatedForTokensAndSharesTool } from "./kamino/kaminoGetAssociateTokens.tools";
+import { GetKaminoCustomStrategyTool } from "./kamino/kaminoGetCustomStrategy.tool";
+import { GetKaminoHoldersTool } from "./kamino/kaminoGetHolders.tool";
+import { GetKaminoSharePriceTool } from "./kamino/kaminoGetSharePriceStrategy.tool";
+import { WithdrawSharesTool } from "./kamino/kaminoWithdrawShares.tool";
+import { CreateMemoWithStrategyKeyTool } from "./kamino/keminoCreateMemoWithStrategy.tool";
 import { SolanaIQImageTool } from "./iq/IQimageInscription.tool";
 import { SolanaIQTextTool } from "./iq/IQTextInscription.tool";
 import { JupiterBuyTokenTool } from "./jup/buyTokenJup";
@@ -15,6 +25,7 @@ import { SolanaPumpfunTokenLaunchTool } from "./pumpfun/createTokenPF";
 import { RaydiumBuyTokenTool } from "./ray/buyTokenRay";
 import { RaydiumGetTokensTool } from "./ray/getTokensRay";
 import { RaydiumSellTokenTool } from "./ray/sellTokenRay";
+import { AgentAwarenessTool } from "./singularity/singularity.tool";
 import { SolanaBalanceTool } from "./solana/balance.tool";
 import { balanceAllTokensOwnedTool } from "./solana/balance_all.tool";
 import { SolanaBalanceOtherTool } from "./solana/balance_of.tool";
@@ -27,6 +38,7 @@ import { SolanaTransferTool } from "./solana/transfer.tool";
 import { BufferInputTool } from "./utils/bufferInput.tool";
 
 export async function createSolanaTools(agent: Agent) {
+    const kamino = new kaminoOperations(agent);
     return [
         new SolanaBalanceOtherTool(agent),
         new SolanaBalanceTool(agent),
@@ -51,6 +63,16 @@ export async function createSolanaTools(agent: Agent) {
         new orcaCreateClmm(agent),
         new orcaFetchPositionTool(agent),
         new JupiterBuyTokenTool(agent),
-        new JupiterSellTokenTool(agent)
+        new JupiterSellTokenTool(agent),
+        new AgentAwarenessTool(agent),
+        new GetAllKaminoStrategiesTool(kamino),
+        new GetKaminoCustomStrategyTool(kamino),
+        new GetKaminoSharePriceTool(kamino),
+        new GetKaminoHoldersTool(kamino),
+        new DepositSharesTool(kamino),
+        new WithdrawSharesTool(kamino),              // ✅ Aggiunto
+        new ClaimRewardsTool(kamino),                // ✅ Aggiunto
+        new CreateMemoWithStrategyKeyTool(kamino),
+        new GetAssociatedForTokensAndSharesTool(kamino),
     ]
 }

@@ -29,7 +29,7 @@ async function create_image(agent, prompt, size = "1024x1024", n = 1) {
             size,
         });
         return {
-            images: response.data.map((img) => img.url),
+            images: response.data?.map((img) => img.url),
         };
     }
     catch (error) {

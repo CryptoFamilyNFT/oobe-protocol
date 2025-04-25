@@ -3,21 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.transportUrls = void 0;
 exports.getParsedTransaction = getParsedTransaction;
 exports.getBlock = getBlock;
+exports.getLatestBlockhash = getLatestBlockhash;
+exports.sendRawTransaction = sendRawTransaction;
 const rpc_transport_http_1 = require("@solana/rpc-transport-http");
 const rpcQueue_1 = require("./helpers/rpc/rpcQueue");
 const logger_1 = __importDefault(require("./logger/logger"));
-const transportUrls = [
+exports.transportUrls = [
     'https://api.mainnet-beta.solana.com',
     'https://solana-rpc.publicnode.com',
     'https://solana.drpc.org/',
     'https://go.getblock.io/4136d34f90a6488b84214ae26f0ed5f4',
     'https://api.blockeden.xyz/solana/67nCBdZQSH9z3YqDDjdm',
     'https://solana.leorpc.com/?api_key=FREE',
-    'https://endpoints.omniatech.io/v1/sol/mainnet/public',
 ];
-const transports = transportUrls.map(url => {
+const transports = exports.transportUrls.map(url => {
     new logger_1.default().info(`Using transport: ${url}`);
     return (0, rpc_transport_http_1.createHttpTransport)({ url }); // timeout per evitare nodi lenti
 });
@@ -96,6 +98,39 @@ async function getBlock(slot, maxSupportedTransactionVersion = 0) {
             jsonrpc: '2.0',
             method: 'getBlock',
             params: [slot, { maxSupportedTransactionVersion: maxSupportedTransactionVersion }],
+        };
+        const response = await retryingFastTransport({ payload });
+        const data = JSON.stringify(response);
+        return data;
+    });
+}
+async function getLatestBlockhash() {
+    return await rpcQueue_1.rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getLatestBlockhash',
+            params: [],
+        };
+        const response = await retryingFastTransport({ payload });
+        const _data = JSON.stringify(response);
+        const dataParsed = JSON.parse(_data);
+        if (dataParsed.result && dataParsed.result.value) {
+            const blockhash = dataParsed.result.value.blockhash;
+            const lastValidBlockHeight = dataParsed.result.value.lastValidBlockHeight;
+            return { blockhash, lastValidBlockHeight };
+        }
+        const data = JSON.stringify(response);
+        return data;
+    });
+}
+async function sendRawTransaction(rawTransaction, options) {
+    return await rpcQueue_1.rpcQueue.enqueue(async () => {
+        const payload = {
+            id: 1,
+            jsonrpc: '2.0',
+            method: 'getLatestBlockhash',
+            params: [rawTransaction, options],
         };
         const response = await retryingFastTransport({ payload });
         const data = JSON.stringify(response);

@@ -93,20 +93,22 @@ async function AgentExecution(oobe: OobeCore) {
         }
         if ("tools" in chunk) {
           toolsRes = chunk.tools.messages;
-          console.log("\x1b[33m%s\x1b[0m", toolsRes);
         }
       }
 
       if (toolsRes.length > 0 && agentRes) {
-        const data_merkle = agent.merkleValidate(toolsRes, agentRes as unknown as Record<string, any>);
-        setImmediate(async () => {
-          try {
-            await agent.merkle.onChainMerkleInscription(data_merkle);
-          } catch (err) {
-            //retry inscription
-            await agent.merkle.onChainMerkleInscription(data_merkle);
-          }
-        });
+        if (toolsRes.find((x) => x.name === "get_all_kamino_strategies")) {
+          continue;
+        } else {
+          const data_merkle = agent.merkleValidate(toolsRes, agentRes as unknown as Record<string, any>);
+          setImmediate(async () => {
+            try {
+              await agent.merkle.onChainMerkleInscription(data_merkle);
+            } catch (err) {
+              await agent.merkle.onChainMerkleInscription(data_merkle);
+            }
+          });
+        }
       }
     }
   } catch (error) {
@@ -128,7 +130,7 @@ function main() {
 
   const config = configManager.createDefaultConfig(
     process.env.PVT_KEY || '',
-    process.env.OPENAI_API_KEY || '',
+    process.env.OPENAI_API_KEY || 'sk-proj--....',
     process.env.OOBE_KEY || '',
   )
 

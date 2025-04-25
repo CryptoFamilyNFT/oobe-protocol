@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ray_operation_1 = require("../../operations/ray/ray.operation");
 const zod_1 = require("zod");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const RayBuy = {
     name: "RAYDIUM_BUY_TOKEN",
     similes: [
@@ -55,7 +55,7 @@ const RayBuy = {
         console.log("Input received in RAYDIUM_BUY_TOKEN tool:", input);
         try {
             const { tokenMint, amount, slippage, balanceSol, balanceMint } = input;
-            const tokenNative = spl_token_1.NATIVE_MINT.toBase58();
+            const tokenNative = spl_v1_1.NATIVE_MINT.toBase58();
             // Check if the balance is sufficient
             if (balanceSol && balanceSol < amount) {
                 return {

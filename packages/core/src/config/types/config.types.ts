@@ -47,6 +47,7 @@ export interface IConfiguration {
     solanaExplorer?: string,
     memoryType?: string,
     dbConfig?: IDatabaseConfig,
+    strategy_key: string,
     private_key: string,
     GOOGLE_API_KEY?: string,
     pollinationsApiUrl?: string,

@@ -6,12 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaOperations = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const logger_1 = __importDefault(require("../utils/logger/logger"));
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const bs58_1 = __importDefault(require("bs58"));
 class SolanaOperations {
     constructor(endpoint = "https://api.mainnet-beta.solana.com", privateKey) {
         this.LAMPORTS_PER_SOL = 1000000000;
-        this.connection = new web3_js_1.Connection(`https://withered-stylish-hill.solana-mainnet.quiknode.pro/3a015c2e56d1c88b224692f5c9d987b37adc1a32/`);
+        this.connection = new web3_js_1.Connection(endpoint);
         this.logger = new logger_1.default();
         this.wallet = web3_js_1.Keypair.fromSecretKey(Uint8Array.from(bs58_1.default.decode(privateKey))).publicKey;
         this.privateKey = privateKey;
@@ -99,12 +99,12 @@ class SolanaOperations {
             }
             else {
                 // Transfer SPL token
-                const fromAta = await (0, spl_token_1.getAssociatedTokenAddress)(mint, this.wallet);
-                const toAta = await (0, spl_token_1.getAssociatedTokenAddress)(mint, to);
+                const fromAta = await (0, spl_v1_1.getAssociatedTokenAddress)(mint, this.wallet);
+                const toAta = await (0, spl_v1_1.getAssociatedTokenAddress)(mint, to);
                 // Get mint info to determine decimals
-                const mintInfo = await (0, spl_token_1.getMint)(this.connection, mint);
+                const mintInfo = await (0, spl_v1_1.getMint)(this.connection, mint);
                 const adjustedAmount = amount * Math.pow(10, mintInfo.decimals);
-                const transaction = new web3_js_1.Transaction().add((0, spl_token_1.createTransferInstruction)(fromAta, toAta, this.wallet, adjustedAmount));
+                const transaction = new web3_js_1.Transaction().add((0, spl_v1_1.createTransferInstruction)(fromAta, toAta, this.wallet, adjustedAmount));
                 tx = await this.sendTransaction(transaction, [this.getSigner()]);
             }
             return tx;
@@ -195,6 +195,7 @@ class SolanaOperations {
         return response;
     }
     getConnection() {
+        console.log("Connection: ", this.connection);
         return this.connection;
     }
     /**
@@ -204,8 +205,8 @@ class SolanaOperations {
      */
     async closeEmptyTokenAccounts() {
         try {
-            const spl_token = await this.create_close_instruction(spl_token_1.TOKEN_PROGRAM_ID);
-            const token_2022 = await this.create_close_instruction(spl_token_1.TOKEN_2022_PROGRAM_ID);
+            const spl_token = await this.create_close_instruction(spl_v1_1.TOKEN_PROGRAM_ID);
+            const token_2022 = await this.create_close_instruction(spl_v1_1.TOKEN_2022_PROGRAM_ID);
             const transaction = new web3_js_1.Transaction();
             const MAX_INSTRUCTIONS = 40; // 40 instructions can be processed in a single transaction without failing
             if (spl_token === undefined && token_2022 === undefined) {
@@ -252,10 +253,10 @@ class SolanaOperations {
             "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
         ];
         for (let i = 0; i < tokens.length; i++) {
-            const token_data = spl_token_1.AccountLayout.decode(tokens[i].account.data);
+            const token_data = spl_v1_1.AccountLayout.decode(tokens[i].account.data);
             if (token_data.amount === BigInt(0) &&
                 !accountExceptions.includes(token_data.mint.toString())) {
-                const closeInstruction = (0, spl_token_1.createCloseAccountInstruction)(ata_accounts.value[i].pubkey, this.wallet, this.wallet, [], token_program);
+                const closeInstruction = (0, spl_v1_1.createCloseAccountInstruction)(ata_accounts.value[i].pubkey, this.wallet, this.wallet, [], token_program);
                 instructions.push(closeInstruction);
             }
         }

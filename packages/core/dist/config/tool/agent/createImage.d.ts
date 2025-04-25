@@ -8,6 +8,6 @@ import { Agent } from "../../../agent/Agents";
  * @returns Object containing the generated image URLs
  */
 export declare function create_image(agent: Agent, prompt: string, size?: "256x256" | "512x512" | "1024x1024", n?: number): Promise<{
-    images: any[];
+    images: any[] | undefined;
 }>;
 //# sourceMappingURL=createImage.d.ts.map

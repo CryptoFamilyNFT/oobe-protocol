@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const zod_1 = require("zod");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const JupiterBuyAction = {
     name: "JUPITER_BUY_TOKEN",
     similes: [
@@ -56,7 +56,7 @@ const JupiterBuyAction = {
         console.log("Input received in JUPITER_BUY_TOKEN tool:", input);
         try {
             const { tokenMint, amount, slippage, balanceSol, balanceMint } = input;
-            const tokenNative = spl_token_1.NATIVE_MINT.toBase58();
+            const tokenNative = spl_v1_1.NATIVE_MINT.toBase58();
             const jup = agent.getJupiterOp();
             const { signature } = await jup.swapSolToToken(tokenMint, amount, slippage);
             return {

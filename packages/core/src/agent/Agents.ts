@@ -20,6 +20,20 @@ import { MerkleTreeManager } from "../operations/merkle.operation";
 import { ResponseMessage } from "../types/agent.interface";
 import { JupiterSwap } from "../operations/jup/jup.operation";
 
+/**
+ * @name Agent
+ * @class Agent
+ * @description This class represents an agent that interacts with the Solana blockchain and performs various operations.
+ * @constructor
+ * @param {IOfficialEndpoint} solanaEndpoint - The Solana endpoint to connect to.
+ * @param {string} privateKey - The private key of the agent's wallet.
+ * @param {string} openKey - The OpenAI API key for AI operations.
+ * @param {Logger} logger - The logger instance for logging messages.
+ * @returns {Agent} - An instance of the Agent class.
+ * @throws {Error} - Throws an error if the agent fails to initialize or perform operations.
+ * @example
+ * const agent = new Agent(solanaEndpoint, privateKey, openKey, logger);
+ */
 export class Agent {
     private solanaOps: SolanaOperations;
     private logger: Logger;

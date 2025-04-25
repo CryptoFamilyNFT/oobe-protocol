@@ -2,19 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTokenMetadata = getTokenMetadata;
 const web3_js_1 = require("@solana/web3.js");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 async function getTokenMetadata(connection, metadataPDA, mint) {
     let metadata = await connection.getAccountInfo(metadataPDA);
     // Verifica se il token è un Token2022
     let isToken2022 = false;
-    const mintInfo = await (0, spl_token_1.getMint)(connection, mint, "confirmed");
-    if (mintInfo.mintAuthority?.equals(spl_token_1.TOKEN_2022_PROGRAM_ID)) {
+    const mintInfo = await (0, spl_v1_1.getMint)(connection, mint, "confirmed");
+    if (mintInfo.mintAuthority?.equals(spl_v1_1.TOKEN_2022_PROGRAM_ID)) {
         isToken2022 = true;
     }
     // Se è un Token2022, usa il metodo corretto
     if (isToken2022) {
         try {
-            const tokenMetadata = await (0, spl_token_1.getTokenMetadata)(connection, mint, "confirmed", spl_token_1.TOKEN_2022_PROGRAM_ID);
+            const tokenMetadata = await (0, spl_v1_1.getTokenMetadata)(connection, mint, "confirmed", spl_v1_1.TOKEN_2022_PROGRAM_ID);
             if (tokenMetadata) {
                 return {
                     name: tokenMetadata.name ?? null,

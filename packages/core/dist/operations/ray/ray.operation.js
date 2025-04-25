@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RayOperation = void 0;
-const spl_token_1 = require("@solana/spl-token");
 const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const web3_js_1 = require("@solana/web3.js");
 const axios_1 = __importDefault(require("axios"));
 const bytes_1 = require("@coral-xyz/anchor/dist/cjs/utils/bytes");
 const core_1 = require("openai/core");
-const spl_token_2 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
+const spl_v1_2 = require("spl-v1");
 class RayOperation {
     constructor(_agent) {
         this.agent = _agent;
@@ -81,7 +81,7 @@ class RayOperation {
         for (const account of tokenAccounts.value) {
             const mintAddress = account.account.data.parsed.info.mint;
             try {
-                const mintInfo = await (0, spl_token_2.getMint)(connection, new web3_js_1.PublicKey(mintAddress));
+                const mintInfo = await (0, spl_v1_2.getMint)(connection, new web3_js_1.PublicKey(mintAddress));
                 // Se il token ha più di 0 decimali, lo consideriamo fungibile
                 if (mintInfo.decimals > 0) {
                     fungibleTokens.push({
@@ -230,8 +230,8 @@ class RayOperation {
     async parseTokenAccountData() {
         const accountInfo = await this.agent.connection.getAccountInfo(this.agent.wallet.publicKey);
         const [tokenAccountResp, tokenAccount2022] = await Promise.all([
-            this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_token_1.TOKEN_PROGRAM_ID }),
-            this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_token_1.TOKEN_2022_PROGRAM_ID })
+            this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_v1_1.TOKEN_PROGRAM_ID }),
+            this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_v1_1.TOKEN_2022_PROGRAM_ID })
         ]);
         return (0, raydium_sdk_v2_1.parseTokenAccountResp)({
             owner: this.agent.wallet.publicKey,
@@ -404,13 +404,13 @@ class RayOperation {
     }
     async createAssociatedTokenAccount(mint) {
         const mintPublicKey = new web3_js_1.PublicKey(mint);
-        const associatedTokenAccount = await (0, spl_token_1.getOrCreateAssociatedTokenAccount)(this.agent.connection, this.agent.wallet, mintPublicKey, this.agent.wallet.publicKey);
+        const associatedTokenAccount = await (0, spl_v1_2.getOrCreateAssociatedTokenAccount)(this.agent.connection, this.agent.wallet, mintPublicKey, this.agent.wallet.publicKey);
         return associatedTokenAccount.address;
     }
 }
 exports.RayOperation = RayOperation;
 RayOperation.existingLiquidityPools = new Set();
-RayOperation.quoteToken = new raydium_sdk_v2_1.Token({ mint: spl_token_1.NATIVE_MINT.toBase58(), decimals: 9 });
+RayOperation.quoteToken = new raydium_sdk_v2_1.Token({ mint: spl_v1_1.NATIVE_MINT.toBase58(), decimals: 9 });
 RayOperation.MINIMAL_MARKET_STATE_LAYOUT_V3 = (0, raydium_sdk_v2_1.struct)([
     (0, raydium_sdk_v2_1.publicKey)("eventQueue"),
     (0, raydium_sdk_v2_1.publicKey)("bids"),

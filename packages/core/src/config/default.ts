@@ -34,6 +34,7 @@ export class ConfigManager {
             oobeKey: "",
             merkleDbSeed: "oobedbleaf!",
             merkleRootSeed: "oobedbroot!",
+            strategy_key: '',
         };
     }
 
@@ -55,6 +56,7 @@ export class ConfigManager {
         solanaExplorer?: string,
         merkleDbSeed: string = "oobedbleaf",
         merkleRootSeed: string = "oobedbroot",
+        strategy_key?: string,
     ): IConfiguration {
         return {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
@@ -65,6 +67,7 @@ export class ConfigManager {
             oobeKey: oobeKey,
             merkleDbSeed: merkleDbSeed,
             merkleRootSeed: merkleRootSeed,
+            strategy_key: strategy_key || '',
         };
     }
 

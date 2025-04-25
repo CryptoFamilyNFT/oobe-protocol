@@ -1,0 +1,1 @@
+{"version":3,"file":"clearBuffer.js","sourceRoot":"","sources":["../../../../packages/core/src/utils/clearBuffer.ts"],"names":[],"mappings":";;AAEA,8CAGC;AALD,mCAAgC;AAEhC,SAAgB,iBAAiB,CAAC,MAAc;IAC5C,OAAO,eAAM,CAAC,IAAI,CAAC,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,EAAE,CAAC,IAAI,KAAK,CAAC,CAAC,CAAC,CAAC;AAE1D,CAAC"}

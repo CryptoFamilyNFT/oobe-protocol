@@ -8,7 +8,7 @@ exports.closePerpTradeLong = closePerpTradeLong;
 exports.openPerpTradeLong = openPerpTradeLong;
 exports.openPerpTradeShort = openPerpTradeShort;
 const web3_js_1 = require("@solana/web3.js");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const anchor_1 = require("@coral-xyz/anchor");
 const var_1 = require("../../config/var");
 const adrena_client_1 = __importDefault(require("../../utils/adrena/adrena_client"));
@@ -132,7 +132,7 @@ async function closePerpTradeShort({ agent, price, tradeMint, }) {
         position: position,
         custody: custody.pubkey,
         custodyTradeOracle: custody.tradeOracle,
-        tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+        tokenProgram: spl_v1_1.TOKEN_PROGRAM_ID,
         lmStaking: adrena_client_1.default.lmStaking,
         lpStaking: adrena_client_1.default.lpStaking,
         cortex: adrena_client_1.default.cortex,
@@ -190,7 +190,7 @@ async function closePerpTradeLong({ agent, price, tradeMint, }) {
         custodyTokenAccount,
         custodyOracle: custody.oracle,
         custodyTradeOracle: custody.tradeOracle,
-        tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+        tokenProgram: spl_v1_1.TOKEN_PROGRAM_ID,
         lmStaking: adrena_client_1.default.lmStaking,
         lpStaking: adrena_client_1.default.lpStaking,
         cortex: adrena_client_1.default.cortex,
@@ -279,7 +279,7 @@ async function openPerpTradeLong({ agent, price, collateralAmount, collateralMin
         userProfile: userProfile ? userProfilePda : null,
         protocolFeeRecipient: client.cortex.protocolFeeRecipient,
         systemProgram: web3_js_1.SystemProgram.programId,
-        tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+        tokenProgram: spl_v1_1.TOKEN_PROGRAM_ID,
         adrenaProgram: ADRENA_PROGRAM_ID,
     })
         .instruction();
@@ -364,7 +364,7 @@ async function openPerpTradeShort({ agent, price, collateralAmount, collateralMi
         userProfile: userProfile ? userProfilePda : null,
         protocolFeeRecipient: client.cortex.protocolFeeRecipient,
         systemProgram: web3_js_1.SystemProgram.programId,
-        tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+        tokenProgram: spl_v1_1.TOKEN_PROGRAM_ID,
         adrenaProgram: ADRENA_PROGRAM_ID,
     })
         .instruction();

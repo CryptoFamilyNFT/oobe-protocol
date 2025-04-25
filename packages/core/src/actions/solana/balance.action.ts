@@ -44,7 +44,7 @@ const balanceAction: Action = {
     ],
   ],
   schema: z.object({
-    tokenAddress: z.string().optional().describe("Token address to check balance for (optional)"),
+    tokenAddress: z.string().optional().nullable().describe("Token address to check balance for (optional)"),
   }),
   handler: async (agent: Agent, input: Record<string, any>) => {
     console.log("Input:", input);

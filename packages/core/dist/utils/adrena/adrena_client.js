@@ -7,7 +7,7 @@ const web3_js_1 = require("@solana/web3.js");
 const anchor_1 = require("@coral-xyz/anchor");
 const adrena_idls_1 = require("../helpers/idls/adrena_idls");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 class AdrenaClient {
     constructor(program, mainPool, cortex, custodies) {
         this.program = program;
@@ -66,7 +66,7 @@ class AdrenaClient {
         return web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("staking"), stakedTokenMint.toBuffer()], AdrenaClient.programId)[0];
     }
     static findATAAddressSync(wallet, mint) {
-        return web3_js_1.PublicKey.findProgramAddressSync([wallet.toBuffer(), spl_token_1.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl_token_1.ASSOCIATED_TOKEN_PROGRAM_ID)[0];
+        return web3_js_1.PublicKey.findProgramAddressSync([wallet.toBuffer(), spl_v1_1.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl_v1_1.ASSOCIATED_TOKEN_PROGRAM_ID)[0];
     }
     getCustodyByMint(mint) {
         const custody = this.custodies.find((custody) => custody.mint.equals(mint));
@@ -85,7 +85,7 @@ class AdrenaClient {
         return !!(await connection.getAccountInfo(address));
     }
     static createATAInstruction({ ataAddress, mint, owner, payer = owner, }) {
-        return (0, spl_token_1.createAssociatedTokenAccountInstruction)(payer, ataAddress, owner, mint);
+        return (0, spl_v1_1.createAssociatedTokenAccountInstruction)(payer, ataAddress, owner, mint);
     }
 }
 AdrenaClient.programId = new web3_js_1.PublicKey("13gDzEXCdocbj8iAiqrScGo47NiSuYENGsRqi3SEAwet");

@@ -4,7 +4,7 @@ exports.orcaOpenSingleSidePositionTool = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const whirlpools_sdk_1 = require("@orca-so/whirlpools-sdk");
 const common_sdk_1 = require("@orca-so/common-sdk");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const anchor_1 = require("@coral-xyz/anchor");
 const tools_1 = require("langchain/tools");
 class orcaOpenSingleSidePositionTool extends tools_1.Tool {
@@ -64,7 +64,7 @@ class orcaOpenSingleSidePositionTool extends tools_1.Tool {
                 tokenMintWithProgramB: mintInfoB,
             };
             const increaseLiquiditQuote = (0, whirlpools_sdk_1.increaseLiquidityQuoteByInputToken)(inputTokenMint, inputAmount, lowerTick, upperTick, common_sdk_1.Percentage.fromFraction(1, 100), whirlpool, tokenExtensionCtx);
-            const { positionMint, tx: txBuilder } = await whirlpool.openPositionWithMetadata(lowerTick, upperTick, increaseLiquiditQuote, undefined, undefined, undefined, spl_token_1.TOKEN_2022_PROGRAM_ID);
+            const { positionMint, tx: txBuilder } = await whirlpool.openPositionWithMetadata(lowerTick, upperTick, increaseLiquiditQuote, undefined, undefined, undefined, spl_v1_1.TOKEN_2022_PROGRAM_ID);
             const txPayload = await txBuilder.build();
             const txPayloadDecompiled = web3_js_1.TransactionMessage.decompile(txPayload.transaction.message);
             instructions = instructions.concat(txPayloadDecompiled.instructions);

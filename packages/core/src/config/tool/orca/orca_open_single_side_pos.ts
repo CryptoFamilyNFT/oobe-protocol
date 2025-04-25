@@ -18,7 +18,7 @@ import {
     NO_TOKEN_EXTENSION_CONTEXT,
 } from "@orca-so/whirlpools-sdk";
 import { Percentage } from "@orca-so/common-sdk";
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_2022_PROGRAM_ID } from "spl-v1";
 import { Agent } from "../../../agent/Agents";
 import { Wallet } from "@coral-xyz/anchor";
 import { Tool } from "langchain/tools";

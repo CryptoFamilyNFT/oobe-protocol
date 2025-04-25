@@ -1,7 +1,7 @@
 import { RayOperation } from "../../operations/ray/ray.operation";
 import { Action } from "../../types/action.interface";
 import { z } from 'zod';
-import { NATIVE_MINT } from "@solana/spl-token";
+import { NATIVE_MINT } from "spl-v1";
 import { Agent } from "../../agent/Agents";
 import { PublicKey } from "@solana/web3.js";
 

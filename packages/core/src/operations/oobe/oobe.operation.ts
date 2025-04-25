@@ -16,7 +16,7 @@ import {
     createInitializeMetadataPointerInstruction,
     TYPE_SIZE,
     LENGTH_SIZE,
-} from "@solana/spl-token";
+} from "spl-v1";
 import axios from "axios";
 import { Agent } from "../../agent/Agents";
 import { TokenMetadata, pack } from "@solana/spl-token-metadata";

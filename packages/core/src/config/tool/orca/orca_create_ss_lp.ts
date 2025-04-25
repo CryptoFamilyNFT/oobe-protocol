@@ -35,7 +35,7 @@ import {
 import {
     getAssociatedTokenAddressSync,
     TOKEN_2022_PROGRAM_ID,
-} from "@solana/spl-token";
+} from "spl-v1";
 import { Tool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
 import { FEE_TIERS } from "../../../utils/orca/orcaUtils";

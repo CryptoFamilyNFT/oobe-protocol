@@ -1,9 +1,6 @@
-import { RayOperation } from "../../operations/ray/ray.operation";
 import { Action } from "../../types/action.interface";
 import { z } from 'zod';
-import { NATIVE_MINT } from "@solana/spl-token";
 import { Agent } from "../../agent/Agents";
-import { PublicKey } from "@solana/web3.js";
 
 const JupiterSellAction: Action = {
     name: "jupiter_SELL_TOKEN",

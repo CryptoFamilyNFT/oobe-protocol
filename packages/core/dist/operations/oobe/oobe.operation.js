@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OobeOperation = void 0;
 const web3_js_1 = require("@solana/web3.js");
-const spl_token_1 = require("@solana/spl-token");
+const spl_v1_1 = require("spl-v1");
 const axios_1 = __importDefault(require("axios"));
 const spl_token_metadata_1 = require("@solana/spl-token-metadata");
 class OobeOperation {
@@ -108,9 +108,9 @@ class OobeOperation {
             additionalMetadata: [["new-field", "new-value"]],
         };
         console.log("Metadata Token created:", metadata);
-        const extensions = [spl_token_1.ExtensionType.TransferFeeConfig, spl_token_1.ExtensionType.MetadataPointer];
-        const mintLength = (0, spl_token_1.getMintLen)(extensions);
-        const metadataLen = spl_token_1.TYPE_SIZE + spl_token_1.LENGTH_SIZE + (0, spl_token_metadata_1.pack)(metadata).length;
+        const extensions = [spl_v1_1.ExtensionType.TransferFeeConfig, spl_v1_1.ExtensionType.MetadataPointer];
+        const mintLength = (0, spl_v1_1.getMintLen)(extensions);
+        const metadataLen = spl_v1_1.TYPE_SIZE + spl_v1_1.LENGTH_SIZE + (0, spl_token_metadata_1.pack)(metadata).length;
         const rentExemptionLamports = await this.agent.connection.getMinimumBalanceForRentExemption(mintLength + metadataLen);
         console.log("Rent exemption:", rentExemptionLamports / 1e9, " SOL");
         const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.createAccount({
@@ -118,9 +118,9 @@ class OobeOperation {
             newAccountPubkey: oobeKeyPair.publicKey,
             space: mintLength,
             lamports: rentExemptionLamports,
-            programId: spl_token_1.TOKEN_2022_PROGRAM_ID,
-        }), (0, spl_token_1.createInitializeMetadataPointerInstruction)(oobeKeyPair.publicKey, this.agent.wallet.publicKey, oobeKeyPair.publicKey, spl_token_1.TOKEN_2022_PROGRAM_ID), (0, spl_token_1.createInitializeTransferFeeConfigInstruction)(oobeKeyPair.publicKey, this.agent.wallet.publicKey, this.agent.wallet.publicKey, l_feeBasisPoints, l_maxFee, spl_token_1.TOKEN_2022_PROGRAM_ID), (0, spl_token_1.createInitializeMintInstruction)(oobeKeyPair.publicKey, decimals, this.agent.wallet.publicKey, null, spl_token_1.TOKEN_2022_PROGRAM_ID), (0, spl_token_1.createInitializeInstruction)({
-            programId: spl_token_1.TOKEN_2022_PROGRAM_ID,
+            programId: spl_v1_1.TOKEN_2022_PROGRAM_ID,
+        }), (0, spl_v1_1.createInitializeMetadataPointerInstruction)(oobeKeyPair.publicKey, this.agent.wallet.publicKey, oobeKeyPair.publicKey, spl_v1_1.TOKEN_2022_PROGRAM_ID), (0, spl_v1_1.createInitializeTransferFeeConfigInstruction)(oobeKeyPair.publicKey, this.agent.wallet.publicKey, this.agent.wallet.publicKey, l_feeBasisPoints, l_maxFee, spl_v1_1.TOKEN_2022_PROGRAM_ID), (0, spl_v1_1.createInitializeMintInstruction)(oobeKeyPair.publicKey, decimals, this.agent.wallet.publicKey, null, spl_v1_1.TOKEN_2022_PROGRAM_ID), (0, spl_v1_1.createInitializeInstruction)({
+            programId: spl_v1_1.TOKEN_2022_PROGRAM_ID,
             mint: oobeKeyPair.publicKey,
             metadata: oobeKeyPair.publicKey,
             name: metadata.name,
@@ -134,8 +134,8 @@ class OobeOperation {
         });
         console.log("Token created with transfer fee extension!", oobeKeyPair.publicKey.toBase58());
         // Step 2: Mint Initial Supply
-        const recipientTokenAccount = await (0, spl_token_1.getOrCreateAssociatedTokenAccount)(this.agent.connection, this.agent.wallet, oobeKeyPair.publicKey, this.agent.wallet.publicKey, true, "confirmed", undefined, spl_token_1.TOKEN_2022_PROGRAM_ID);
-        const mintToTransaction = new web3_js_1.Transaction().add((0, spl_token_1.createMintToInstruction)(oobeKeyPair.publicKey, recipientTokenAccount.address, this.agent.wallet.publicKey, l_supply, [], spl_token_1.TOKEN_2022_PROGRAM_ID));
+        const recipientTokenAccount = await (0, spl_v1_1.getOrCreateAssociatedTokenAccount)(this.agent.connection, this.agent.wallet, oobeKeyPair.publicKey, this.agent.wallet.publicKey, true, "confirmed", undefined, spl_v1_1.TOKEN_2022_PROGRAM_ID);
+        const mintToTransaction = new web3_js_1.Transaction().add((0, spl_v1_1.createMintToInstruction)(oobeKeyPair.publicKey, recipientTokenAccount.address, this.agent.wallet.publicKey, l_supply, [], spl_v1_1.TOKEN_2022_PROGRAM_ID));
         await (0, web3_js_1.sendAndConfirmTransaction)(this.agent.connection, mintToTransaction, [this.agent.wallet], {
             skipPreflight: true,
         });

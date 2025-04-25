@@ -43,7 +43,7 @@ const balanceAction = {
         ],
     ],
     schema: zod_1.z.object({
-        tokenAddress: zod_1.z.string().optional().describe("Token address to check balance for (optional)"),
+        tokenAddress: zod_1.z.string().optional().nullable().describe("Token address to check balance for (optional)"),
     }),
     handler: async (agent, input) => {
         console.log("Input:", input);

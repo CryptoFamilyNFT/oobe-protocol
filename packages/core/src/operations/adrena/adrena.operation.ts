@@ -9,7 +9,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { Agent } from "../../agent/Agents";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "spl-v1";
 import { BN } from "@coral-xyz/anchor";
 import { TOKENS, DEFAULT_OPTIONS } from "../../config/var";
 import AdrenaClient from "../../utils/adrena/adrena_client";
