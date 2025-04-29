@@ -30,6 +30,7 @@ export declare class kaminoOperations {
     private agent;
     strategyPubkey: PublicKey;
     kamino: Kamino;
+    transportUrls: string[];
     private currentTransportIndex;
     constructor(agent: Agent);
     private getNextTransportUrl;

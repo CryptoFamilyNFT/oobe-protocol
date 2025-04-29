@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { ProofRecord } from "../types/agent.interface";
+import { IConfiguration } from "./types/config.types";
 interface FinalTransactions {
     tools: ProofRecord[];
 }
@@ -16,7 +17,8 @@ interface FinalTransactions {
 export declare class ZeroCombineFetcher {
     private agentWallet;
     private connection;
-    constructor(agentWallet: PublicKey, connection: Connection);
+    private configManager;
+    constructor(agentWallet: PublicKey, connection: Connection, configManager: IConfiguration);
     execute(batchSize?: number): Promise<{
         finalTransactions: FinalTransactions;
     }>;

@@ -6,6 +6,7 @@ const default_1 = require("../config/default");
 const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const crypto_js_1 = require("crypto-js");
 const core_1 = require("openai/core");
+const SmartRoundRobinRPC_1 = require("../utils/SmartRoundRobinRPC");
 // Class to handle PDA operations
 class PDAManager {
     constructor(agenWallett) {
@@ -103,14 +104,31 @@ class TransactionParser {
         });
         return { tupleFinalTreeTxns: tupleFinalTreeTransactions, allTxns: decodedSigns };
     }
-    static async getAllTransactionsFromPDAAccountRoot(connection, pda) {
-        const signatures = await connection.getSignaturesForAddress(pda);
+    static async getAllTransactionsFromPDAAccountRoot(pda, configManager) {
+        const rpcClient = new SmartRoundRobinRPC_1.SolanaRpcClient(configManager.transportsRPC);
+        async function getAllTransactions(addressPda) {
+            const pubkey = new web3_js_1.PublicKey(addressPda);
+            let allTransactions = [];
+            let fetchedTransactions;
+            let lastSignature = null;
+            do {
+                fetchedTransactions = await rpcClient.getSignaturesForAddress(pubkey, {
+                    ...(lastSignature !== null && { before: lastSignature }),
+                    limit: 1000,
+                    commitment: 'confirmed'
+                });
+                allTransactions.push(...fetchedTransactions);
+                lastSignature = fetchedTransactions.length > 0 ? fetchedTransactions[fetchedTransactions.length - 1].signature : null;
+            } while (fetchedTransactions.length === 1000);
+            return allTransactions;
+        }
+        const signatures = await getAllTransactions(pda);
         const filteredSignatures = signatures.filter((sig) => sig.signature && sig.memo !== null);
         const RootTransactionDecoded = filteredSignatures.filter((sig) => {
             if (sig.memo) {
                 const memoContent = sig.memo.replace(/^\[\d+\]\s*/, '');
                 sig.memo = memoContent;
-                const cleanedMemoContent = memoContent.replace(/\\|\s+/g, '');
+                //const cleanedMemoContent = memoContent.replace(/\\|\s+/g, '');
                 return true;
             }
             return false;
@@ -215,7 +233,8 @@ class ContentFetcher {
  *
  */
 class ZeroCombineFetcher {
-    constructor(agentWallet, connection) {
+    constructor(agentWallet, connection, configManager) {
+        this.configManager = configManager;
         this.agentWallet = agentWallet;
         this.connection = connection;
     }
@@ -226,18 +245,24 @@ class ZeroCombineFetcher {
          */
         const pdaManager = new PDAManager(this.agentWallet);
         const userPdas = pdaManager.getUserPDAs();
+        console.log("userPdas", userPdas);
         /**
          * Get filtered transactions from the Root PDA
          * @param pda: PublicKey - The PDA address of the Root PDA.
          * @returns transactionsRoot: ConfirmedSignatureInfo[] - Filtered transactions from the Root PDA.
          */
-        const transactionsRoot = await TransactionParser.getAllTransactionsFromPDAAccountRoot(this.connection, userPdas.RootPDA);
+        const transactionsRoot = await TransactionParser.getAllTransactionsFromPDAAccountRoot(userPdas.RootPDA, this.configManager);
+        console.log("transactionsRoot", transactionsRoot);
+        if (transactionsRoot.length === 0) {
+            throw new Error("No transactions found in the Root PDA");
+        }
         /**
          * Get filtered transactions from the DB PDA
          * @param pda: PublicKey - The PDA address of the DB PDA.
          * @returns transactionsDb: ConfirmedSignatureInfo[] - Filtered transactions from the DB PDA.
          */
         const { tupleFinalTreeTxns, allTxns } = await TransactionParser.getAllTransactionsFromPDAAccountDb(this.connection, userPdas.LeafPDA, transactionsRoot);
+        console.log("tupleFinalTreeTxns", tupleFinalTreeTxns);
         let allFinalTransactions = [];
         // Process transactions in batches of 100
         for (let i = 0; i < tupleFinalTreeTxns.length; i += batchSize) {

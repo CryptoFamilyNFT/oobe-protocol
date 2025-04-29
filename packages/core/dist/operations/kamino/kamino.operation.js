@@ -10,7 +10,6 @@ const decimal_js_1 = __importDefault(require("decimal.js"));
 const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const crypto_1 = __importDefault(require("crypto"));
 const default_1 = require("../../config/default");
-const SmartRoundRobinRPC_1 = require("../../utils/SmartRoundRobinRPC");
 /**
  * @class kaminoOperations
  * @description This class provides methods to interact with Kamino strategies on the Solana blockchain.
@@ -39,6 +38,14 @@ class kaminoOperations {
         this.agent = agent;
         this.strategyPubkey = new web3_js_1.PublicKey("2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV");
         this.kamino = new kliquidity_sdk_1.Kamino('mainnet-beta', new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)('mainnet-beta')));
+        this.transportUrls = [
+            "https://api.mainnet-beta.solana.com",
+            "https://mainnet.helius-rpc.com",
+            "https://solana-api.projectserum.com",
+            "https://solana-mainnet.rpc.extrnode.com",
+            "https://api.mainnet-beta.solana.com/v1/rpc",
+            "https://rpc.ankr.com/solana/mainnet"
+        ];
         this.currentTransportIndex = 0;
         this.agent = agent;
         if (this.agent) {
@@ -47,8 +54,8 @@ class kaminoOperations {
     }
     ;
     getNextTransportUrl() {
-        this.currentTransportIndex = (this.currentTransportIndex + 1) % SmartRoundRobinRPC_1.transportUrls.length;
-        return SmartRoundRobinRPC_1.transportUrls[this.currentTransportIndex];
+        this.currentTransportIndex = (this.currentTransportIndex + 1) % this.transportUrls.length;
+        return this.transportUrls[this.currentTransportIndex];
     }
     async handleRpcError(fn) {
         try {
@@ -73,7 +80,7 @@ class kaminoOperations {
         });
     }
     kaminoInitModule() {
-        const connection = new web3_js_1.Connection(SmartRoundRobinRPC_1.transportUrls[this.currentTransportIndex]);
+        const connection = new web3_js_1.Connection(this.transportUrls[this.currentTransportIndex]);
         return new kliquidity_sdk_1.Kamino('mainnet-beta', connection);
     }
     // Encrypt

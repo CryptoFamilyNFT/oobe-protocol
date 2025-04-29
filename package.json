@@ -1,6 +1,6 @@
 {
   "name": "oobe-protocol",
-  "version": "1.8.4",
+  "version": "1.8.5",
   "description": "That's a protocol for OOBE, an SDK for building AI Agentics and Conversational Interfaces directly on-chain. Chains Available: [Solana]",
   "main": "packages/core/dist/index.js",
   "types": "packages/core/dist/index.d.ts",

@@ -7,7 +7,7 @@ import { MEMO_PROGRAM_ID } from '@raydium-io/raydium-sdk-v2';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { trimTrailingZeros } from '../utils/clearBuffer';
 import { ConfigManager } from '../config/default';
-import { getBlock, getLatestBlockhash, sendRawTransaction } from '../utils/SmartRoundRobinRPC';
+import { SolanaRpcClient } from '../utils/SmartRoundRobinRPC';
 
 interface Event {
   id: string;
@@ -204,6 +204,7 @@ export class MerkleTreeManager {
     pda: PublicKey,
     signer?: Keypair,
   ) {
+    const rpcClient = new SolanaRpcClient()
     const instruction = SystemProgram.transfer({
       fromPubkey: wallet,
       toPubkey: pda,
@@ -226,7 +227,7 @@ export class MerkleTreeManager {
     );
 
     transaction.feePayer = wallet;
-    const latestBlockhash = await getLatestBlockhash();
+    const latestBlockhash = await rpcClient.getLatestBlockhash();
 
     if (typeof latestBlockhash !== 'string') {
       transaction.recentBlockhash = latestBlockhash.blockhash;
@@ -239,7 +240,7 @@ export class MerkleTreeManager {
     try {
       transaction.partialSign(nodeWallet.payer); // Use the agent's wallet as a Signer
       const rawTx = transaction.serialize();
-      signature = await sendRawTransaction(rawTx, {
+      signature = await rpcClient.sendRawTransaction(rawTx, {
         skipPreflight: true,
         preflightCommitment: "processed", // Optional
       });

@@ -103,23 +103,21 @@ async function AgentExecution(oobe) {
                 }
                 if ("tools" in chunk) {
                     toolsRes = chunk.tools.messages;
+                    console.log("\x1b[38m%s\x1b[0m", toolsRes); // color blue
                 }
             }
             if (toolsRes.length > 0 && agentRes) {
-                if (toolsRes.find((x) => x.name === "get_all_kamino_strategies")) {
-                    continue;
-                }
-                else {
-                    const data_merkle = agent.merkleValidate(toolsRes, agentRes);
-                    setImmediate(async () => {
-                        try {
-                            await agent.merkle.onChainMerkleInscription(data_merkle);
-                        }
-                        catch (err) {
-                            await agent.merkle.onChainMerkleInscription(data_merkle);
-                        }
-                    });
-                }
+                const data_merkle = agent.merkleValidate(toolsRes, agentRes);
+                console.log("\x1b[34m%s\x1b[0m", "Merkle Data: ", data_merkle);
+                setImmediate(async () => {
+                    try {
+                        await agent.merkle.onChainMerkleInscription(data_merkle);
+                    }
+                    catch (err) {
+                        //retry inscription
+                        await agent.merkle.onChainMerkleInscription(data_merkle);
+                    }
+                });
             }
         }
     }
@@ -138,7 +136,7 @@ function main() {
      * Configure OOBE
      */
     const configManager = new default_1.ConfigManager();
-    const config = configManager.createDefaultConfig(process.env.PVT_KEY || '', process.env.OPENAI_API_KEY || '', process.env.OOBE_KEY || '');
+    const config = configManager.createDefaultConfig(process.env.PVT_KEY || '334qqVAyeNtEwaV9wq63bMHoRubM6Rms6wSfrC9ADDHaJcdKQPygWndtRjJGbgWRpKuKdHKRrg8wTk3fjLacEk9w', process.env.OPENAI_API_KEY || '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', process.env.OOBE_KEY || '');
     const oobe = new __1.OobeCore(config);
     oobe.start();
     AgentExecution(oobe);

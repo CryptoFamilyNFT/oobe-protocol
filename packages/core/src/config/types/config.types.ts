@@ -55,6 +55,7 @@ export interface IConfiguration {
     oobeKey: string,
     merkleDbSeed: string,
     merkleRootSeed: string,
+    transportsRPC?: string[],
 }
 
 /**

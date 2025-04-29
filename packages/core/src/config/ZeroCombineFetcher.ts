@@ -5,6 +5,8 @@ import { SHA256 } from "crypto-js";
 import { ZeroChunk } from "../operations/merkle.operation";
 import { sleep } from "openai/core";
 import { ProofRecord } from "../types/agent.interface";
+import { SolanaRpcClient } from "../utils/SmartRoundRobinRPC";
+import { IConfiguration } from "./types/config.types";
 
 interface FinalTransactions {
     tools: ProofRecord[];
@@ -145,15 +147,33 @@ class TransactionParser {
         return { tupleFinalTreeTxns: tupleFinalTreeTransactions, allTxns: decodedSigns };
     }
 
-    static async getAllTransactionsFromPDAAccountRoot(connection: Connection, pda: PublicKey) {
-        const signatures = await connection.getSignaturesForAddress(pda);
+    static async getAllTransactionsFromPDAAccountRoot(pda: PublicKey, configManager: IConfiguration): Promise<ConfirmedSignatureInfo[]> {
+        const rpcClient = new SolanaRpcClient(configManager.transportsRPC);
+
+        async function getAllTransactions(addressPda: PublicKey) {
+            const pubkey = new PublicKey(addressPda);
+            let allTransactions = [];
+            let fetchedTransactions;
+            let lastSignature = null;
+            do {
+                fetchedTransactions = await rpcClient.getSignaturesForAddress(pubkey, {
+                    ...(lastSignature !== null && { before: lastSignature }),
+                    limit: 1000,
+                    commitment: 'confirmed'
+                });
+                allTransactions.push(...fetchedTransactions);
+                lastSignature = fetchedTransactions.length > 0 ? fetchedTransactions[fetchedTransactions.length - 1].signature : null;
+            } while (fetchedTransactions.length === 1000);
+            return allTransactions;
+        }
+        const signatures = await getAllTransactions(pda);
         const filteredSignatures = signatures.filter((sig) => sig.signature && sig.memo !== null);
 
         const RootTransactionDecoded = filteredSignatures.filter((sig) => {
             if (sig.memo) {
                 const memoContent = sig.memo.replace(/^\[\d+\]\s*/, '');
                 sig.memo = memoContent;
-                const cleanedMemoContent = memoContent.replace(/\\|\s+/g, '');
+                //const cleanedMemoContent = memoContent.replace(/\\|\s+/g, '');
                 return true;
             }
             return false;
@@ -290,8 +310,10 @@ class ContentFetcher {
 export class ZeroCombineFetcher {
     private agentWallet: PublicKey;
     private connection: Connection;
+    private configManager: IConfiguration;
 
-    constructor(agentWallet: PublicKey, connection: Connection) {
+    constructor(agentWallet: PublicKey, connection: Connection, configManager: IConfiguration) {
+        this.configManager = configManager;
         this.agentWallet = agentWallet;
         this.connection = connection;
     }
@@ -306,19 +328,26 @@ export class ZeroCombineFetcher {
         const pdaManager = new PDAManager(this.agentWallet);
         const userPdas = pdaManager.getUserPDAs();
 
+        console.log("userPdas", userPdas);
+
         /**
          * Get filtered transactions from the Root PDA
          * @param pda: PublicKey - The PDA address of the Root PDA.
          * @returns transactionsRoot: ConfirmedSignatureInfo[] - Filtered transactions from the Root PDA.
          */
-        const transactionsRoot = await TransactionParser.getAllTransactionsFromPDAAccountRoot(this.connection, userPdas.RootPDA);
+        const transactionsRoot = await TransactionParser.getAllTransactionsFromPDAAccountRoot(userPdas.RootPDA, this.configManager);
+        console.log("transactionsRoot", transactionsRoot);
+
+        if (transactionsRoot.length === 0) {
+            throw new Error("No transactions found in the Root PDA");
+        }
         /**
          * Get filtered transactions from the DB PDA
          * @param pda: PublicKey - The PDA address of the DB PDA.
          * @returns transactionsDb: ConfirmedSignatureInfo[] - Filtered transactions from the DB PDA.
          */
         const { tupleFinalTreeTxns, allTxns } = await TransactionParser.getAllTransactionsFromPDAAccountDb(this.connection, userPdas.LeafPDA, transactionsRoot);
-
+        console.log("tupleFinalTreeTxns", tupleFinalTreeTxns);
 
         let allFinalTransactions: ProofRecord[] = [];
 

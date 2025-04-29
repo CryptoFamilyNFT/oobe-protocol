@@ -12,6 +12,7 @@ const text_splitter_1 = require("langchain/text_splitter");
 const prompts_1 = require("@langchain/core/prompts");
 const runnables_1 = require("@langchain/core/runnables");
 const output_parsers_1 = require("@langchain/core/output_parsers");
+const SmartRoundRobinRPC_1 = require("../../../utils/SmartRoundRobinRPC");
 class AgentAwarenessTool extends tools_1.Tool {
     constructor(agent) {
         super();
@@ -75,13 +76,8 @@ class AgentAwarenessTool extends tools_1.Tool {
         });
         try {
             this.logger.info("Fetching past actions...");
-            const pastActions = await new ZeroCombineFetcher_1.ZeroCombineFetcher(pubkey, new web3_js_1.Connection('https://api.mainnet-beta.solana.com/', {
-                commitment: "confirmed",
-                confirmTransactionInitialTimeout: 5000,
-                disableRetryOnRateLimit: false,
-            })).execute(500).then((x) => x).catch((error) => {
-                this.logger.error("Error fetching past actions:", error);
-            });
+            const rpcsTransport = new SmartRoundRobinRPC_1.SolanaRpcClient().getRpcTransports();
+            const pastActions = await new ZeroCombineFetcher_1.ZeroCombineFetcher(pubkey, new web3_js_1.Connection("https://api.mainnet-beta.solana.com"), rpcsTransport ? { transportsRPC: rpcsTransport } : { transportsRPC: [''] }).execute(1000).then((x) => x);
             if (pastActions === undefined) {
                 this.logger.error("Past actions fetch returned undefined.");
                 return JSON.stringify({

@@ -141,6 +141,7 @@ class MerkleTreeManager {
         };
     }
     async sendCustomDataTx(wallet, data, connection, pda, signer) {
+        const rpcClient = new SmartRoundRobinRPC_1.SolanaRpcClient();
         const instruction = web3_js_1.SystemProgram.transfer({
             fromPubkey: wallet,
             toPubkey: pda,
@@ -155,7 +156,7 @@ class MerkleTreeManager {
         const transaction = new web3_js_1.Transaction().add(web3_js_1.ComputeBudgetProgram.setComputeUnitLimit({ units: 600000 }), web3_js_1.ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 }), // Add priority fees
         instruction, memoInstruction);
         transaction.feePayer = wallet;
-        const latestBlockhash = await (0, SmartRoundRobinRPC_1.getLatestBlockhash)();
+        const latestBlockhash = await rpcClient.getLatestBlockhash();
         if (typeof latestBlockhash !== 'string') {
             transaction.recentBlockhash = latestBlockhash.blockhash;
         }
@@ -165,7 +166,7 @@ class MerkleTreeManager {
         try {
             transaction.partialSign(nodeWallet.payer); // Use the agent's wallet as a Signer
             const rawTx = transaction.serialize();
-            signature = await (0, SmartRoundRobinRPC_1.sendRawTransaction)(rawTx, {
+            signature = await rpcClient.sendRawTransaction(rawTx, {
                 skipPreflight: true,
                 preflightCommitment: "processed", // Optional
             });

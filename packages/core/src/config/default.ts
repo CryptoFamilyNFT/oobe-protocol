@@ -35,6 +35,15 @@ export class ConfigManager {
             merkleDbSeed: "oobedbleaf!",
             merkleRootSeed: "oobedbroot!",
             strategy_key: '',
+            transportsRPC: [
+                'https://api.mainnet-beta.solana.com',                      // Solana Labs (Ufficiale)
+                'https://rpc.shdw.genesysgo.net',                           // GenesysGo (Shadow RPC)
+                'https://solana-rpc.publicnode.com',                        // PublicNode
+                'https://solana.drpc.org',                                  // dRPC
+                'https://endpoints.omniatech.io/v1/sol/mainnet/public',     // OMNIA
+                'https://solana.api.onfinality.io/public',                  // OnFinality
+                'https://solana.leorpc.com/?api_key=FREE',                  // LeoRPC (con API key gratuita)
+              ],
         };
     }
 
@@ -57,6 +66,7 @@ export class ConfigManager {
         merkleDbSeed: string = "oobedbleaf",
         merkleRootSeed: string = "oobedbroot",
         strategy_key?: string,
+        transportsRPC?: string[],
     ): IConfiguration {
         return {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
@@ -68,6 +78,7 @@ export class ConfigManager {
             merkleDbSeed: merkleDbSeed,
             merkleRootSeed: merkleRootSeed,
             strategy_key: strategy_key || '',
+            transportsRPC: transportsRPC || [],
         };
     }
 
@@ -75,8 +86,9 @@ export class ConfigManager {
         return this.defaultConfig;
     }
 
-    public setDefaultConfig(config: IConfiguration): void {
-        this.defaultConfig = config;
+    public setDefaultConfig(config: IConfiguration | Partial<IConfiguration>): IConfiguration {
+        this.defaultConfig = { ...this.defaultConfig, ...config };
+        return this.defaultConfig;
     }
 }
 

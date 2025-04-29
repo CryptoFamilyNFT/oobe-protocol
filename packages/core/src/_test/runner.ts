@@ -130,7 +130,7 @@ function main() {
 
   const config = configManager.createDefaultConfig(
     process.env.PVT_KEY || '',
-    process.env.OPENAI_API_KEY || 'sk-proj--....',
+    process.env.OPENAI_API_KEY || '',
     process.env.OOBE_KEY || '',
   )
 

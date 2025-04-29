@@ -15,7 +15,6 @@ import crypto from 'crypto';
 import { ConfigManager } from "../../config/default";
 import { WhirlpoolStrategy, WhirlpoolStrategyJSON } from "@kamino-finance/kliquidity-sdk/dist/kamino-client/accounts";
 import { createJsonRpcApi } from "@solana/rpc-spec";
-import { transportUrls } from "../../utils/SmartRoundRobinRPC";
 
 type raydiumPoolAddress = string;
 type orcaPoolAddress = string;
@@ -47,7 +46,14 @@ export class kaminoOperations {
    
     public strategyPubkey: PublicKey = new PublicKey("2H4xebnp2M9JYgPPfUw58uUQahWF8f1YTNxwwtmdqVYV")
     public kamino: Kamino = new Kamino('mainnet-beta', new Connection(clusterApiUrl('mainnet-beta')));
-
+    public transportUrls: string[] = [
+        "https://api.mainnet-beta.solana.com",
+        "https://mainnet.helius-rpc.com",
+        "https://solana-api.projectserum.com",
+        "https://solana-mainnet.rpc.extrnode.com",
+        "https://api.mainnet-beta.solana.com/v1/rpc",
+        "https://rpc.ankr.com/solana/mainnet"
+    ]
     private currentTransportIndex: number = 0;
     
     constructor(private agent: Agent) {
@@ -58,8 +64,8 @@ export class kaminoOperations {
     };
 
     private getNextTransportUrl(): string {
-        this.currentTransportIndex = (this.currentTransportIndex + 1) % transportUrls.length;
-        return transportUrls[this.currentTransportIndex];
+        this.currentTransportIndex = (this.currentTransportIndex + 1) % this.transportUrls.length;
+        return this.transportUrls[this.currentTransportIndex];
     }
 
     private async handleRpcError<T>(fn: () => Promise<T>): Promise<T> {
@@ -86,7 +92,7 @@ export class kaminoOperations {
     }
 
     private kaminoInitModule(): Kamino {
-        const connection = new Connection(transportUrls[this.currentTransportIndex]);
+        const connection = new Connection(this.transportUrls[this.currentTransportIndex]);
         return new Kamino('mainnet-beta', connection);
     }
 

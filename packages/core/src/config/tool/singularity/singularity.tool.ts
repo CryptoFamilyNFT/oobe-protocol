@@ -9,6 +9,8 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { Document } from "@langchain/core/documents";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { SolanaRpcClient } from "../../../utils/SmartRoundRobinRPC";
+import { IConfiguration } from "../../types/config.types";
 
 export class AgentAwarenessTool extends Tool {
   name = "AGENT_SINGULAR_AWARENESS";
@@ -90,13 +92,13 @@ export class AgentAwarenessTool extends Tool {
 
     try {
       this.logger.info("Fetching past actions...");
-      const pastActions = await new ZeroCombineFetcher(pubkey, new Connection('https://api.mainnet-beta.solana.com/', {
-        commitment: "confirmed",
-        confirmTransactionInitialTimeout: 5000,
-        disableRetryOnRateLimit: false,
-      })).execute(500).then((x) => x).catch((error) => {
-        this.logger.error("Error fetching past actions:", error);
-      });
+      
+      const rpcsTransport = new SolanaRpcClient().getRpcTransports();
+      const pastActions = await new ZeroCombineFetcher(
+        pubkey,
+        new Connection("https://api.mainnet-beta.solana.com"),
+        rpcsTransport ? { transportsRPC: rpcsTransport } as IConfiguration : { transportsRPC: [''] } as IConfiguration
+      ).execute(1000).then((x) => x)
 
       if (pastActions === undefined) {
         this.logger.error("Past actions fetch returned undefined.");

@@ -32,6 +32,15 @@ class ConfigManager {
             merkleDbSeed: "oobedbleaf!",
             merkleRootSeed: "oobedbroot!",
             strategy_key: '',
+            transportsRPC: [
+                'https://api.mainnet-beta.solana.com', // Solana Labs (Ufficiale)
+                'https://rpc.shdw.genesysgo.net', // GenesysGo (Shadow RPC)
+                'https://solana-rpc.publicnode.com', // PublicNode
+                'https://solana.drpc.org', // dRPC
+                'https://endpoints.omniatech.io/v1/sol/mainnet/public', // OMNIA
+                'https://solana.api.onfinality.io/public', // OnFinality
+                'https://solana.leorpc.com/?api_key=FREE', // LeoRPC (con API key gratuita)
+            ],
         };
     }
     createEndpointsConfig(officialRpc, unofficialEndpoints) {
@@ -42,7 +51,7 @@ class ConfigManager {
             unOfficial: unofficialEndpoints || this.endpointsConfig.unOfficial
         };
     }
-    createDefaultConfig(privateKey, openAiKey, oobeKey, solanaEndpoint, solanaUnofficialEndpoints, solanaExplorer, merkleDbSeed = "oobedbleaf", merkleRootSeed = "oobedbroot", strategy_key) {
+    createDefaultConfig(privateKey, openAiKey, oobeKey, solanaEndpoint, solanaUnofficialEndpoints, solanaExplorer, merkleDbSeed = "oobedbleaf", merkleRootSeed = "oobedbroot", strategy_key, transportsRPC) {
         return {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
             solanaUnofficialEndpoints: solanaUnofficialEndpoints ?? this.endpointsConfig.unOfficial ?? [],
@@ -53,13 +62,15 @@ class ConfigManager {
             merkleDbSeed: merkleDbSeed,
             merkleRootSeed: merkleRootSeed,
             strategy_key: strategy_key || '',
+            transportsRPC: transportsRPC || [],
         };
     }
     getDefaultConfig() {
         return this.defaultConfig;
     }
     setDefaultConfig(config) {
-        this.defaultConfig = config;
+        this.defaultConfig = { ...this.defaultConfig, ...config };
+        return this.defaultConfig;
     }
 }
 exports.ConfigManager = ConfigManager;
