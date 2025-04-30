@@ -4,7 +4,6 @@ import { createHttpTransport } from '@solana/rpc-transport-http';
 import { Commitment, ConfirmedSignatureInfo, PublicKey, SendOptions, TransactionSignature } from '@solana/web3.js';
 import { rpcQueue } from './helpers/rpc/rpcQueue';
 import { ConfigManager } from '../config/default';
-import Logger from './logger/logger';
 
 const MAX_ATTEMPTS = 5;
 
@@ -16,7 +15,6 @@ export class SolanaRpcClient {
         const transportUrls = transportRPC.length > 0 ? transportRPC : new ConfigManager().getDefaultConfig().transportsRPC ?? [];
         this.transportsRpc = transportRPC;
         this.transports = transportUrls.map(url => {
-            new Logger().info(`Using transport: ${url}`);
             return createHttpTransport({ url });
         });
     }

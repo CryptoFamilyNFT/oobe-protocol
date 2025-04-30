@@ -8,6 +8,7 @@ import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { trimTrailingZeros } from '../utils/clearBuffer';
 import { ConfigManager } from '../config/default';
 import { SolanaRpcClient } from '../utils/SmartRoundRobinRPC';
+import { sleep } from '@kamino-finance/kliquidity-sdk';
 
 interface Event {
   id: string;
@@ -157,6 +158,7 @@ export class MerkleTreeManager {
   async onChainPDAccounts(wallet: PublicKey, connection: Connection) {
     const programId = new PublicKey("11111111111111111111111111111111");
     const { merkleDbSeed, merkleRootSeed } = new ConfigManager().getDefaultConfig();
+    const rpcClient = new SolanaRpcClient()
 
     const [LeafPDA, bump] = PublicKey.findProgramAddressSync(
       [Buffer.from(SHA256(`${merkleDbSeed}@` + wallet.toBase58()).toString().slice(0, 32), 'hex')],
@@ -181,14 +183,24 @@ export class MerkleTreeManager {
       const txLeaf = await this.sendTx(programId, wallet, LeafPDA, bump, data_size);
       const txRoot = await this.sendTx(programId, wallet, RootPDA, bumpRoot, data_size);
 
-      const latestBlockhash = await connection.getLatestBlockhash();
-      txLeaf.recentBlockhash = latestBlockhash.blockhash;
-      txLeaf.feePayer = wallet;
-      await connection.sendTransaction(txLeaf, [this.agent.wallet], { skipPreflight: true });
+      const latestBlockhash = await new SolanaRpcClient().getLatestBlockhash();
+      txLeaf.recentBlockhash = typeof latestBlockhash === 'string' ? latestBlockhash : latestBlockhash.blockhash;
 
-      txRoot.recentBlockhash = latestBlockhash.blockhash;
+      txLeaf.feePayer = wallet;
+      const signer = new NodeWallet(this.agent.wallet).payer;
+      txLeaf.partialSign(signer);
+      const serializedTransaction = txLeaf.serialize({ requireAllSignatures: false });
+      await rpcClient.sendRawTransaction(serializedTransaction, { skipPreflight: true, preflightCommitment: 'processed' });
+
+      await sleep(2000);
+
+      const _latestBlockhash = await new SolanaRpcClient().getLatestBlockhash();
+      txRoot.recentBlockhash = typeof _latestBlockhash === 'string' ? _latestBlockhash : _latestBlockhash.blockhash;
+
       txRoot.feePayer = wallet;
-      await connection.sendTransaction(txRoot, [this.agent.wallet], { skipPreflight: true });
+      txRoot.partialSign(signer);
+      const serializedTxRoot = txRoot.serialize({ requireAllSignatures: false });
+      await rpcClient.sendRawTransaction(serializedTxRoot, { skipPreflight: true, preflightCommitment: 'processed' });
     }
 
     return {
@@ -202,7 +214,7 @@ export class MerkleTreeManager {
     data: Buffer,
     connection: Connection,
     pda: PublicKey,
-    signer?: Keypair,
+    signer: Keypair,
   ) {
     const rpcClient = new SolanaRpcClient()
     const instruction = SystemProgram.transfer({
@@ -225,36 +237,24 @@ export class MerkleTreeManager {
       instruction,
       memoInstruction
     );
+    const nodeWallet = new NodeWallet(this.agent.wallet).payer;
 
-    transaction.feePayer = wallet;
+    transaction.feePayer = nodeWallet.publicKey;
     const latestBlockhash = await rpcClient.getLatestBlockhash();
 
-    if (typeof latestBlockhash !== 'string') {
-      transaction.recentBlockhash = latestBlockhash.blockhash;
-    }
-
-    //convert Wallet to NodeWallet
-    const nodeWallet = new NodeWallet(signer || this.agent.wallet);
-    let signature;
-
+    transaction.recentBlockhash = typeof latestBlockhash !== 'string' ? latestBlockhash.blockhash : latestBlockhash;
     try {
-      transaction.partialSign(nodeWallet.payer); // Use the agent's wallet as a Signer
-      const rawTx = transaction.serialize();
-      signature = await rpcClient.sendRawTransaction(rawTx, {
-        skipPreflight: true,
-        preflightCommitment: "processed", // Optional
+      const signature = await connection.sendTransaction(transaction, [signer], {
+        skipPreflight: false,
+        preflightCommitment: 'processed',
       });
+      return signature;
     } catch (e: any) {
-      const errorMessage = e.message || '';
-      const match = errorMessage.match(/signature: '([a-zA-Z0-9]+)'/);
-      if (match && match[1]) {
-        signature = match[1]; // Extract the signature from the error message
-      } else {
-        throw e; // Re-throw the error if no signature is found
-      }
+      const message = e.message || '';
+      const match = message.match(/signature: '([a-zA-Z0-9]+)'/);
+      if (match) return match[1];
+      throw e;
     }
-
-    return signature;
   }
 
   calculateChunksFromBuffer(buffer: Buffer, minChunkSize: number = 1, maxChunkSize: number = 1231): Buffer[] {
@@ -343,6 +343,7 @@ export class MerkleTreeManager {
           chunk,
           connection,
           dbAccountStore,
+          this.agent.wallet,
         );
 
         // Simulate the transaction with the first chunk
@@ -365,6 +366,7 @@ export class MerkleTreeManager {
           Buffer.from(act.toString('hex') + '|' + res.toString('hex') + '|' + prevSign?.toString()),
           connection,
           dbAccountStore,
+          this.agent.wallet,
         );
         prevSign = tx; // Update prevSign to current chunk's signature
         zeroChunkSign = tx; // Store the signature of the last chunk
@@ -380,6 +382,7 @@ export class MerkleTreeManager {
             chunk,
             connection,
             dbAccountStore,
+            this.agent.wallet,
           );
           prevSign = _tx
         } else {
@@ -388,6 +391,7 @@ export class MerkleTreeManager {
             Buffer.from(prevSign + '|' + chunk.toString('utf-8')),
             connection,
             dbAccountStore,
+            this.agent.wallet,
           );
           prevSign = tx; // Update prevSign to current chunk's signature
         }
@@ -400,6 +404,7 @@ export class MerkleTreeManager {
       Buffer.from(JSON.stringify({ root: data.merkleRoot, proofSignature: zeroChunkSign })),
       connection,
       dbAccountRoot,
+      this.agent.wallet,
     );
 
 
