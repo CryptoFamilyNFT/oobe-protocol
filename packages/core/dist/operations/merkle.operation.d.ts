@@ -27,13 +27,19 @@ export declare class MerkleTreeManager {
     getLeaf(eventDetails: string): string | null;
     getEvents(): any;
     verifyEvent(eventDetails: string): boolean;
+    createMerkle(data: any): string;
     sendTx(programId: PublicKey, wallet: PublicKey, pda: PublicKey, bump: number, data_size: number): Promise<Transaction>;
+    onChainPDAPersonality(wallet: PublicKey, connection: Connection): Promise<{
+        personalityROOT_PDA: PublicKey;
+        personalityDB_PDA: PublicKey;
+    }>;
     onChainPDAccounts(wallet: PublicKey, connection: Connection): Promise<{
         dbAccountStore: PublicKey;
         dbAccountRoot: PublicKey;
     }>;
     sendCustomDataTx(wallet: PublicKey, data: Buffer, connection: Connection, pda: PublicKey, signer: Keypair): Promise<any>;
     calculateChunksFromBuffer(buffer: Buffer, minChunkSize?: number, maxChunkSize?: number): Buffer[];
+    onChainMerklePersonalityInscription(data: MerkleValidatorResult): Promise<any>;
     onChainMerkleInscription(data: MerkleValidatorResult): Promise<any>;
 }
 //# sourceMappingURL=merkle.operation.d.ts.map

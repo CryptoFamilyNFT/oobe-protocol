@@ -21,22 +21,30 @@ import { Percentage } from "@orca-so/common-sdk";
 import { TOKEN_2022_PROGRAM_ID } from "spl-v1";
 import { Agent } from "../../../agent/Agents";
 import { Wallet } from "@coral-xyz/anchor";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
+import { z } from "zod";
+import { T } from "@raydium-io/raydium-sdk-v2/lib/api-0eb57ba2";
 
-export class orcaOpenSingleSidePositionTool extends Tool {
+export class orcaOpenSingleSidePositionTool extends StructuredTool {
 
     name = "ORCA_OPEN_SINGLE_SIDED_POSITION";
     description = `
     This tool can be used to open a single-sided position on Orca.
     Use the tool only for opening positions on Orca.`;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        whirlpoolAddress: z.string().describe("The address of the Whirlpool pool."),
+        inputTokenMint: z.string().describe("The mint address of the input token."),
+        inputAmount: z.number().describe("The amount of input token to be used."),
+        distanceFromCurrentPriceBps: z.number().describe("The distance from the current price in basis points."),
+        widthBps: z.number().describe("The width of the position in basis points."),
+    })) {
         super();
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         // Ensure input is correctly parsed
-        const parsedInput = JSON.parse(input);
+        const parsedInput = JSON.parse(JSON.stringify(input));
 
         const {
             whirlpoolAddress,
@@ -184,8 +192,12 @@ export class orcaOpenSingleSidePositionTool extends Tool {
                 transactionIds: txId,
                 positionMint: positionMint.toString(),
             });
-        } catch (error) {
-            throw new Error(`${error}`);
+        } catch (error: any) {
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+          });
         }
     }
 }

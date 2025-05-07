@@ -12,7 +12,6 @@ import { GetKaminoSharePriceTool } from "./kamino/kaminoGetSharePriceStrategy.to
 import { WithdrawSharesTool } from "./kamino/kaminoWithdrawShares.tool";
 import { CreateMemoWithStrategyKeyTool } from "./kamino/keminoCreateMemoWithStrategy.tool";
 import { SolanaIQImageTool } from "./iq/IQimageInscription.tool";
-import { SolanaIQTextTool } from "./iq/IQTextInscription.tool";
 import { JupiterBuyTokenTool } from "./jup/buyTokenJup";
 import { JupiterSellTokenTool } from "./jup/sellTokenJup";
 import { createToken2022Tool } from "./oobe/token_2022.tool";
@@ -33,5 +32,8 @@ import { FetchAgentKeypair } from "./solana/fetch_agent_wallet";
 import { SolanaTPSCalculatorTool } from "./solana/tps.tool";
 import { SolanaTransferTool } from "./solana/transfer.tool";
 import { BufferInputTool } from "./utils/bufferInput.tool";
-export declare function createSolanaTools(agent: Agent): Promise<(PerpCloseTradeTool | PerpOpenTradeTool | SolanaCreateImageTool | ClaimRewardsTool | DepositSharesTool | GetAllKaminoStrategiesTool | GetAssociatedForTokensAndSharesTool | GetKaminoCustomStrategyTool | GetKaminoHoldersTool | GetKaminoSharePriceTool | WithdrawSharesTool | CreateMemoWithStrategyKeyTool | SolanaIQImageTool | SolanaIQTextTool | JupiterBuyTokenTool | JupiterSellTokenTool | createToken2022Tool | orcaCreateClmm | orcaCreateSsLp | orcaFetchPositionTool | orcaClosePositionTool | SolanaPumpfunTokenLaunchTool | RaydiumBuyTokenTool | RaydiumSellTokenTool | AgentAwarenessTool | SolanaBalanceTool | balanceAllTokensOwnedTool | SolanaBalanceOtherTool | CheckTokensRugTool | SolanaCloseEmptyTokenAccounts | FetchAgentKeypair | SolanaTPSCalculatorTool | SolanaTransferTool | BufferInputTool)[]>;
+import { PersonalityTool } from "./agent-personality/a-personality.tool";
+import { GetPersonalityTool } from "./agent-personality/g-personality.tool";
+import { UsePersonalityTool } from "./agent-personality/u-personality.tool";
+export declare function createSolanaTools(agent: Agent): Promise<(PerpCloseTradeTool | PerpOpenTradeTool | SolanaCreateImageTool | ClaimRewardsTool | DepositSharesTool | GetAllKaminoStrategiesTool | GetAssociatedForTokensAndSharesTool | GetKaminoCustomStrategyTool | GetKaminoHoldersTool | GetKaminoSharePriceTool | WithdrawSharesTool | CreateMemoWithStrategyKeyTool | SolanaIQImageTool | JupiterBuyTokenTool | JupiterSellTokenTool | createToken2022Tool | orcaCreateClmm | orcaCreateSsLp | orcaFetchPositionTool | orcaClosePositionTool | SolanaPumpfunTokenLaunchTool | RaydiumBuyTokenTool | RaydiumSellTokenTool | AgentAwarenessTool | SolanaBalanceTool | balanceAllTokensOwnedTool | SolanaBalanceOtherTool | CheckTokensRugTool | SolanaCloseEmptyTokenAccounts | FetchAgentKeypair | SolanaTPSCalculatorTool | SolanaTransferTool | BufferInputTool | PersonalityTool | GetPersonalityTool | UsePersonalityTool)[]>;
 //# sourceMappingURL=index.tool.d.ts.map

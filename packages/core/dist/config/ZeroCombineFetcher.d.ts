@@ -4,6 +4,9 @@ import { IConfiguration } from "./types/config.types";
 interface FinalTransactions {
     tools: ProofRecord[];
 }
+interface PersonalitiesTransaction {
+    personalities: ProofRecord[];
+}
 /**
  * @module ZeroCombineFetcher
  * @description: Fetches and processes transactions from a PDA account. Used for Agentic Actions.
@@ -21,6 +24,9 @@ export declare class ZeroCombineFetcher {
     constructor(agentWallet: PublicKey, connection: Connection, configManager: IConfiguration);
     execute(batchSize?: number): Promise<{
         finalTransactions: FinalTransactions;
+    }>;
+    executePersonality(batchSize?: number): Promise<{
+        finalTransactions: PersonalitiesTransaction;
     }>;
 }
 export {};

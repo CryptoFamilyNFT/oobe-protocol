@@ -1,13 +1,14 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import Logger from "../../../utils/logger/logger";
+import { z } from "zod";
 
-export class SolanaCloseEmptyTokenAccounts extends Tool {
+export class SolanaCloseEmptyTokenAccounts extends StructuredTool {
   name = "close_empty_token_accounts";
   description = `Close all empty spl-token accounts and reclaim the rent`;
   private logger = new Logger();
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({})) {
     super();
   }
 
@@ -21,6 +22,12 @@ export class SolanaCloseEmptyTokenAccounts extends Tool {
         signature,
       });
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return JSON.stringify({
+          status: "error",
+          message: `Invalid input: ${error.message}`,
+        });
+      }
       return JSON.stringify({
         status: "error",
         message: error.message,

@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class PerpOpenTradeTool extends Tool {
+export class PerpOpenTradeTool extends StructuredTool {
   name = "open_perp_trade";
   description = `This tool can be used to open perpetuals trade ( It uses Adrena Protocol ).
 
@@ -15,13 +16,24 @@ export class PerpOpenTradeTool extends Tool {
   slippage?: number, eg 0.3 (optional)
   side: string, eg: "long" or "short"`;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+    
+    collateralAmount: z.number(),
+    collateralMint: z.string().optional().nullable(),
+    tradeMint: z.string().optional().nullable(),
+    leverage: z.number().optional().nullable(),
+    price: z.number().optional().nullable(),
+    slippage: z.number().optional().nullable(),
+    side: z.string().refine(val => val === "long" || val === "short", {
+      message: "Side must be either 'long' or 'short'",
+    }),
+  })) {
     super();
   }
 
-  protected async _call(input: string): Promise<string> {
+  protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
     try {
-      const parsedInput = JSON.parse(input);
+      const parsedInput = JSON.parse(JSON.stringify(input));
 
       const tx =
         parsedInput.side === "long"

@@ -17106,7 +17106,7 @@ export declare class RayOperation {
     processRaydiumPool(id: PublicKey, quoteAmountMinPool: TokenAmount, quoteAmountMaxPool: TokenAmount, quoteToken: Token | undefined, poolState: LiquidityStateV4): Promise<void>;
     private createPoolKeys;
     private fetchOpenBookAccounts;
-    parseTokenAccountData(): Promise<{
+    parseTokenAccountData(account?: PublicKey): Promise<{
         tokenAccounts: TokenAccount[];
         tokenAccountRawInfos: TokenAccountRaw[];
     }>;

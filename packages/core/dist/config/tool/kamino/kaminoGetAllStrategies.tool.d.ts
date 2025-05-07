@@ -1,9 +1,11 @@
-import { Tool } from "langchain/tools";
+import { StructuredTool } from "langchain/tools";
 import { kaminoOperations } from "../../../operations/kamino/kamino.operation";
-export declare class GetAllKaminoStrategiesTool extends Tool {
+import { z } from "zod";
+export declare class GetAllKaminoStrategiesTool extends StructuredTool {
     private kamino;
     name: string;
     description: string;
+    schema: z.ZodObject<{}, "strip", z.ZodTypeAny, {}, {}>;
     constructor(kamino: kaminoOperations);
     private UPLOAD_DIR;
     private ensureUploadDirExists;

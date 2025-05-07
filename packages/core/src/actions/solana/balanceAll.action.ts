@@ -4,8 +4,8 @@ import { Agent } from "../../agent/Agents";
 import { z } from "zod";
 import { RayOperation } from "../../operations/ray/ray.operation";
 import { getPdaMetadataKey } from "@raydium-io/raydium-sdk-v2";
-import { getTokenMetadata } from "../../utils/tokenMetadata";
 import { BN } from "bn.js";
+import { SolanaTokenBalances } from "../../config/tool/solana/token_balances";
 
 const balanceAllTokensOwnedAction: Action = {
     name: "BALANCE_ALL_TOKENS_OWNED_ACTION",
@@ -49,50 +49,13 @@ const balanceAllTokensOwnedAction: Action = {
             console.log("Checking balance tokens of ca:", walletAddress);
             const { tokenAccounts } = await rayOp.parseTokenAccountData();
 
-            const results = [];
 
-            for (const tokenAccount of tokenAccounts) {
-                if (tokenAccount?.publicKey) {
-                    const pdaMint = getPdaMetadataKey(tokenAccount?.mint);
-                    console.log("Token Account:", tokenAccount);
-                    try {
-                        const metadata = await getTokenMetadata(
-                            agent.connection,
-                            pdaMint.publicKey,
-                            tokenAccount?.mint
-                        );
 
-                        // Add only tokens with valid metadata
-                        if (metadata) {
-                        if (metadata.decimals !== undefined) {
-                            results.push({
-                                ...metadata,
-                                tokenMint: tokenAccount.mint.toBase58() ,
-                                balance: tokenAccount.amount.toNumber() / Math.pow(10, metadata.decimals), // Convert from BN to decimal using metadata decimals
-                            });
-                        } else {
-                            console.warn(`Metadata for token ${tokenAccount.mint.toBase58()} is missing decimals.`);
-                        }
-                        }
-                    } catch (error: any) {
-                        if (error.message.includes("TokenInvalidAccountOwnerError")) {
-                            // Skip if the token account is invalid
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            const balances = results.map((result) => ({
-                token: result.symbol ?? result.name,
-                balance: result.balance,
-                mint: result.tokenMint,
-            }));
+            const results = await SolanaTokenBalances(agent, new PublicKey(walletAddress));
 
             return {
                 status: "success",
-                balances,
-                wallet: walletAddress,
+                tokens: results,
             };
         } catch (error: any) {
             return {

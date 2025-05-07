@@ -3,10 +3,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PerpCloseTradeTool = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const tools_1 = require("langchain/tools");
-class PerpCloseTradeTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class PerpCloseTradeTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        tradeMint: zod_1.z.string().optional().nullable(),
+        price: zod_1.z.number().optional().nullable(),
+        side: zod_1.z.string().refine(val => val === "long" || val === "short", {
+            message: "Side must be either 'long' or 'short'",
+        }),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "solana_close_perp_trade";
         this.description = `This tool can be used to close perpetuals trade ( It uses Adrena Protocol ).
 
@@ -17,7 +25,14 @@ class PerpCloseTradeTool extends tools_1.Tool {
     }
     async _call(input) {
         try {
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
+            if (!parsedInput.tradeMint) {
+                return JSON.stringify({
+                    status: "error",
+                    message: "tradeMint is required",
+                    code: "INVALID_INPUT",
+                });
+            }
             const tx = parsedInput.side === "long"
                 ? await this.agent.closePerpTradeLong({
                     price: parsedInput.price,

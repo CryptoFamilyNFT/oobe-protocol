@@ -227,8 +227,8 @@ class RayOperation {
         });
         return accounts.map(({ account }) => raydium_sdk_v2_1.MARKET_STATE_LAYOUT_V3.decode(account.data));
     }
-    async parseTokenAccountData() {
-        const accountInfo = await this.agent.connection.getAccountInfo(this.agent.wallet.publicKey);
+    async parseTokenAccountData(account = this.agent.wallet.publicKey) {
+        const accountInfo = await this.agent.connection.getAccountInfo(account);
         const [tokenAccountResp, tokenAccount2022] = await Promise.all([
             this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_v1_1.TOKEN_PROGRAM_ID }),
             this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: spl_v1_1.TOKEN_2022_PROGRAM_ID })

@@ -1,9 +1,10 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
+import { z } from "zod";
 
-export class JupiterSellTokenTool extends Tool {
+export class JupiterSellTokenTool extends StructuredTool {
 
     name = "JUPITER_SELL_TOKEN";
     description = `This tool can be used to sell a token through Jupiter. Await the solana_balance tool response before starting validation and use the solana_balance tool pointed to "your" agent wallet before and after this tool to check the balance in sol and check your balance in this tokenAddress.
@@ -20,7 +21,11 @@ export class JupiterSellTokenTool extends Tool {
     slippage: number, eg "0.5",
     `;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        tokenMint: z.string().describe("The token mint to use for sell"),
+        amount: z.number().describe("Amount to sell of the tojen"),
+        slippage: z.number().describe("Slippage for sell")
+    })) {
         super();
     }
 
@@ -33,12 +38,12 @@ export class JupiterSellTokenTool extends Tool {
         }
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         try {
             console.log("Input received in JUPITER_SELL_TOKEN tool:", input);
 
             // Ensure input is correctly parsed
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             if (!parsedInput || typeof parsedInput !== 'object') {
                 throw new Error("Invalid input format, expected JSON object.");
             }

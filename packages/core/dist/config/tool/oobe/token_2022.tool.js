@@ -2,24 +2,51 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createToken2022Tool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class createToken2022Tool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class createToken2022Tool extends tools_1.StructuredTool {
+    /**
+     * Constructs a new instance of the class.
+     *
+     * @param agent - The agent instance used for handling operations.
+     * @param schema - The schema definition for the configuration object.
+     *   - `name` - A string representing the name of the token.
+     *   - `symbol` - A string representing the symbol of the token.
+     *   - `decimals` - A number indicating the decimal precision of the token.
+     *   - `supply` - A number representing the total supply of the token.
+     *   - `description` - A string providing a description of the token.
+     *   - `feeBasisPoints` - A number representing the fee in basis points.
+     *   - `maxFeeInTokens` - A number indicating the maximum fee in tokens.
+     *   - `pinataKey` - A string representing the Pinata API key for IPFS integration.
+     *   - `imageUrl` - A string containing the URL of the token's image.
+     */
+    constructor(agent, schema = zod_1.z.object({
+        name: zod_1.z.string().describe("A string representing the name of the token"),
+        symbol: zod_1.z.string().describe("A string representing the symbol of the token"),
+        decimals: zod_1.z.number().describe("A number indicating the decimal precision of the token"),
+        supply: zod_1.z.number().describe("A number representing the total supply of the token"),
+        description: zod_1.z.string().describe("A string providing a description of the token"),
+        feeBasisPoints: zod_1.z.number().describe("A number representing the fee in basis points"),
+        maxFeeInTokens: zod_1.z.number().describe("A number indicating the maximum fee in tokens"),
+        pinataKey: zod_1.z.string().describe("A string representing the Pinata API key for IPFS integration"),
+        imageUrl: zod_1.z.string().describe("A string containing the URL of the token's image"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "CREATE_TOKEN_2022";
         this.description = `This tool must be used to create Tax Transfer Tokens following the 2022 standard! Do not use this tool for SPL tokens!
      Use "solana_create_image" tool to generate the required image.
      
     Inputs: 
-    name: string, eg "OOBEX Test",
-    symbol: string, eg "BEX",
-    decimals: number, eg "6",
-    supply: number, eg "100000000",
-    description: string, eg "OOBEX Test Token",
-    feeBasisPoints: number, eg "700",
-    maxFeeInTokens: number, eg "100000000",
-    pinataKey: string, eg "ayJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    imageUrl: string, eg "https://example.com/image.png"
+        name: string, eg "OOBEX Test",
+        symbol: string, eg "BEX",
+        decimals: number, eg "6",
+        supply: number, eg "100000000",
+        description: string, eg "OOBEX Test Token",
+        feeBasisPoints: number, eg "700",
+        maxFeeInTokens: number, eg "100000000",
+        pinataKey: string, eg "ayJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        imageUrl: string, eg "https://example.com/image.png"
 
     - Ensure the \`supply\` is a valid integer.
     - Make sure the \`feeBasisPoints\` is a valid integer and within a reasonable range.
@@ -64,8 +91,7 @@ class createToken2022Tool extends tools_1.Tool {
      */
     async _call(input) {
         try {
-            input = input.trim();
-            const parsedInput = JSON.parse(input);
+            const parsedInput = input;
             // [!] Extract the nested input key if it exists
             const actualInput = parsedInput;
             this.validateInput(actualInput);
@@ -74,6 +100,12 @@ class createToken2022Tool extends tools_1.Tool {
             return JSON.stringify(result);
         }
         catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,

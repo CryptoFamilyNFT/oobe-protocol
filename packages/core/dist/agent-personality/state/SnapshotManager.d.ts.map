@@ -1,0 +1,1 @@
+{"version":3,"file":"SnapshotManager.d.ts","sourceRoot":"","sources":["../../../src/agent-personality/state/SnapshotManager.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,aAAa,EAAE,MAAM,wBAAwB,CAAC;AAEvD,qBAAa,eAAe;IAC1B,MAAM,CAAC,QAAQ,CAAC,OAAO,EAAE,aAAa,GAAG,MAAM;IAI/C,MAAM,CAAC,OAAO,CAAC,QAAQ,EAAE,MAAM,GAAG,aAAa;CAGhD"}

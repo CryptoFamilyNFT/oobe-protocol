@@ -2,10 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaIQImageTool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class SolanaIQImageTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class SolanaIQImageTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        imageUrl: zod_1.z.string().url().describe("URL of the image to be inscribed"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "iq_code_in_inscription";
         this.description = `This tool can inscribe an image with ASCII characters using the IQ protocol optimization for data storage.
 
@@ -17,10 +21,8 @@ class SolanaIQImageTool extends tools_1.Tool {
     async _call(input) {
         try {
             // Parse and normalize input
-            input = input.trim();
-            console.log("input", input);
             // Launch token with validated input
-            const result = await this.agent.generateCodeInIQInscription(input, "image", 10, 0.5);
+            const result = await this.agent.generateCodeInIQInscription(input.imageUrl, "image", 10, 0.5);
             return JSON.stringify(result);
         }
         catch (error) {

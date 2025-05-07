@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FetchAgentKeypair = void 0;
 const tools_1 = require("langchain/tools");
-class FetchAgentKeypair extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class FetchAgentKeypair extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({})) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "fetch_agent_keypair";
         this.description = `Fetch the agent's wallet keypair. 
     This tool can be used to fetch the agent's wallet keypair. 
@@ -22,6 +24,12 @@ class FetchAgentKeypair extends tools_1.Tool {
             });
         }
         catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,

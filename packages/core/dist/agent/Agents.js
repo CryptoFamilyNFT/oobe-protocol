@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -20,6 +53,11 @@ const adrena_operation_1 = require("../operations/adrena/adrena.operation");
 const merkleValidator_1 = require("../utils/merkleValidator");
 const merkle_operation_1 = require("../operations/merkle.operation");
 const jup_operation_1 = require("../operations/jup/jup.operation");
+const node_crypto_1 = require("node:crypto");
+const output_parsers_1 = require("@langchain/core/output_parsers");
+const zod_1 = require("zod");
+const prompts_1 = require("@langchain/core/prompts");
+const crypto = __importStar(require("node:crypto"));
 /**
  * @name Agent
  * @class Agent
@@ -35,7 +73,11 @@ const jup_operation_1 = require("../operations/jup/jup.operation");
  * const agent = new Agent(solanaEndpoint, privateKey, openKey, logger);
  */
 class Agent {
-    constructor(solanaEndpoint, privateKey, openKey, logger) {
+    getRpcTransports() {
+        throw new Error("Method not implemented.");
+    }
+    constructor(solanaEndpoint, privateKey, openKey, logger, personality) {
+        this.personality = personality;
         this.solanaOps = new solana_operation_1.SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
@@ -45,6 +87,9 @@ class Agent {
         this.connection = this.solanaOps.getConnection();
         this.iqOps = new iq_operation_1.IQOperation();
         this.merkle = new merkle_operation_1.MerkleTreeManager(this);
+        if (this.personality) {
+            this.logger.info(`Personality initialized: ${this.personality.name}`);
+        }
     }
     async initialize() {
         try {
@@ -62,13 +107,106 @@ class Agent {
     async initOpenAiAuth() {
         Agent.open_ai = new openai_1.ChatOpenAI({
             apiKey: this.OPEN_AI_KEY,
-            modelName: "gpt-4o",
-            temperature: 0.7,
+            modelName: "gpt-3.5-turbo",
+            //temperature: 0.7,
         });
         this.logger.info(this.logger.colorize("[oobe-protocol] - Auth initialized successfully!", "magenta"));
     }
     async getOpenK() {
         return this.OPEN_AI_KEY;
+    }
+    async getCurrentProfileAgent(name, tone, stylePrompt, emoji, traits) {
+        async function callZodOutputParserPA() {
+            const outputParser = output_parsers_1.StructuredOutputParser.fromZodSchema(zod_1.z.object({
+                agent_personality: zod_1.z.object({
+                    id: zod_1.z.string(),
+                    traits: zod_1.z.record(zod_1.z.number()),
+                    logic: zod_1.z.string(),
+                    memory: zod_1.z.string(),
+                    visual: zod_1.z.string(),
+                    evolution: zod_1.z.array(zod_1.z.string()),
+                    version: zod_1.z.string(),
+                    name: zod_1.z.string(),
+                    tone: zod_1.z.string(),
+                    stylePrompt: zod_1.z.string(),
+                    emoji: zod_1.z.string(),
+                    profileHash: zod_1.z.string(),
+                }),
+            }));
+            return outputParser;
+        }
+        const parser = await callZodOutputParserPA();
+        const prompt = prompts_1.ChatPromptTemplate.fromTemplate(`
+            Use the personality given by {name} based on {traits}, {tone} and {stylePrompt}, if the personality is only by name create data for traits, tone and styled-prompt .
+            Format the data as: {agent_personality}.
+            Refer always to the traits and the stylePrompt, and use the tone to create a personality.
+        `);
+        const chain = prompt.pipe(Agent.open_ai).pipe(parser);
+        const messages = await chain.invoke({
+            agent_personality: parser.getFormatInstructions(),
+            traits: JSON.stringify(this.personality?.traits),
+            name: name,
+            tone: tone,
+            stylePrompt: stylePrompt,
+        });
+        const { traits: _traits, evolution: _evolutionTrail, memory: _memory, name: _name, tone: _tone, stylePrompt: _stylePrompt, emoji: _emoji } = messages.agent_personality;
+        const memoryHash = this.merkle.addEvent(JSON.stringify({ traits: _traits, stylePrompt: _stylePrompt }));
+        const profile = {
+            id: crypto.randomUUID(),
+            version: _evolutionTrail.length.toString(),
+            name: _name,
+            tone: _tone,
+            stylePrompt: _stylePrompt,
+            decisionLogicHash: _memory,
+            visualHash: (0, node_crypto_1.createHash)("sha256").update(_stylePrompt).digest("hex"),
+            emoji: _emoji,
+            traits: _traits,
+            evolutionTrail: _evolutionTrail,
+            profileHash: (0, node_crypto_1.createHash)("sha256")
+                .update(JSON.stringify(traits) + _evolutionTrail + _memory + _name + _tone + _stylePrompt)
+                .digest("hex"),
+        };
+        return profile;
+    }
+    async getPersonality() {
+        return this.personality;
+    }
+    async setPersonality(personality) {
+        this.personality = personality;
+    }
+    async getDefaultPersonality() {
+        return {
+            name: "Oobe-Wan Kenoobe",
+            tone: "Degen, Developer full-stack, Jedi Master",
+            stylePrompt: "you are a Jedi Master developer on Solana created by oobe and you here to help you with your Solana projects. you know everything about Solana and will guide you in the fastest way and with the best practices using my tools. learn yourself and be the best.",
+            emoji: "🥋",
+            traits: [
+                { name: "Curiosity", value: 0.5 },
+                { name: "Empathy", value: 0.5 },
+                { name: "Creativity", value: 0.5 },
+                { name: "Logic", value: 0.5 },
+                { name: "Humor", value: 0.5 },
+                { name: "Confidence", value: 0.5 },
+                { name: "Skepticism", value: 0.5 },
+                { name: "Optimism", value: 0.5 },
+                { name: "Pessimism", value: 0.5 },
+                { name: "Intuition", value: 0.5 },
+                { name: "Analytical Thinking", value: 0.5 },
+                { name: "Pragmatism", value: 0.5 },
+                { name: "Idealism", value: 0.5 },
+                { name: "Open-mindedness", value: 0.9 },
+                { name: "Conscientiousness", value: 0.9 },
+            ],
+            evolutionTrail: [],
+            memoryHash: (0, node_crypto_1.createHash)("sha256").update("Default memory").digest("hex"),
+            decisionLogicHash: (0, node_crypto_1.createHash)("sha256").update("Default decision logic").digest("hex"),
+            visualHash: (0, node_crypto_1.createHash)("sha256").update("Default style").digest("hex"),
+            profileHash: (0, node_crypto_1.createHash)("sha256")
+                .update("Obi-Wan Kenobi" + "Oracle Jedi master dev on Solana" + "Default style")
+                .digest("hex"),
+            version: "1.0",
+            id: crypto.randomUUID(),
+        };
     }
     async getOpenAi() {
         return Agent.open_ai;

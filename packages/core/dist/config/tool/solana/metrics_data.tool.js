@@ -2,9 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MetricsDataToolStudyLogics = void 0;
 const tools_1 = require("langchain/tools");
-class MetricsDataToolStudyLogics extends tools_1.Tool {
-    constructor() {
+const zod_1 = require("zod");
+class MetricsDataToolStudyLogics extends tools_1.StructuredTool {
+    constructor(schema = zod_1.z.object({
+        token: zod_1.z.string(),
+        analysis: zod_1.z.string().describe("JSON string of RugCheck"),
+        poolDetails: zod_1.z.string().describe("JSON string of pool details") // JSON string of pool details
+    })) {
         super();
+        this.schema = schema;
         this.name = "metrics_data_tool_study_logics";
         this.description = `Analyzes market data to provide entry/exit points, risk assessment, RSI analysis, and insights.
     Inputs ( input is a JSON string ):
@@ -16,7 +22,7 @@ class MetricsDataToolStudyLogics extends tools_1.Tool {
     }
     async _call(input) {
         try {
-            const { token, analysis, poolDetails } = JSON.parse(input);
+            const { token, analysis, poolDetails } = JSON.parse(JSON.stringify(input));
             const rugCheck = JSON.parse(analysis);
             const poolData = JSON.parse(poolDetails);
             const supportLevel = this.calculateSupportLevel(poolData);

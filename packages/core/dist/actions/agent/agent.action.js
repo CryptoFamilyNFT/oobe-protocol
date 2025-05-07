@@ -57,6 +57,7 @@ const createImageAction = {
             .describe("The style of the generated image"),
     }),
     handler: async (agent, input) => {
+        console.log("\x1b[35m%s\x1b[0m", "Input received in CREATE_IMAGE tool:", input);
         const defaultConfig = new default_1.ConfigManager().getDefaultConfig();
         try {
             if (!defaultConfig.openAiKey) {

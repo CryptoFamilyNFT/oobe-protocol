@@ -55,8 +55,8 @@ const launchPumpfunTokenAction: Action = {
       .max(1000)
       .describe("Description of the token"),
     imageUrl: z.string().url().describe("URL of the token image"),
-    twitter: z.string().optional().nullable().describe("Twitter handle (optional)"),
-    telegram: z.string().optional().nullable().describe("Telegram group link (optional)"),
+    twitter: z.string().describe("Twitter handle (optional)").optional().nullable(),
+    telegram: z.string().describe("Telegram group link (optional)").optional().nullable(),
     website: z.string().url().optional().nullable().describe("Website URL (optional)"),
     initialLiquiditySOL: z
       .number()

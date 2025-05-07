@@ -1,4 +1,4 @@
-import { Commitment, ConfirmedSignatureInfo, PublicKey, SendOptions, TransactionSignature } from '@solana/web3.js';
+import { AccountInfo, Commitment, ConfirmedSignatureInfo, ParsedAccountData, PublicKey, RpcResponseAndContext, SendOptions, TransactionSignature } from '@solana/web3.js';
 export declare class SolanaRpcClient {
     private transports;
     private transportsRpc;
@@ -16,5 +16,11 @@ export declare class SolanaRpcClient {
         lastValidBlockHeight: number;
     }>;
     sendRawTransaction(rawTransaction: Buffer | Uint8Array | Array<number>, options?: SendOptions): Promise<TransactionSignature>;
+    getBalance(address: PublicKey, commitment?: Commitment): Promise<string>;
+    getTokenAccountsByOwner(address: PublicKey, programId: PublicKey, encoding?: 'jsonParsed'): Promise<RpcResponseAndContext<Array<{
+        pubkey: PublicKey;
+        account: AccountInfo<ParsedAccountData>;
+    }>>>;
+    getMultipleAccountInfo(addresses: PublicKey[]): Promise<Array<AccountInfo<Buffer> | null>>;
 }
 //# sourceMappingURL=SmartRoundRobinRPC.d.ts.map

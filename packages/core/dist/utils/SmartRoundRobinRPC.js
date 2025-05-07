@@ -124,6 +124,93 @@ class SolanaRpcClient {
             return response.result;
         });
     }
+    async getBalance(address, commitment) {
+        return await rpcQueue_1.rpcQueue.enqueue(async () => {
+            const payload = {
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'getBalance',
+                params: [address, commitment],
+            };
+            const response = await this.retryingFastTransport({ payload });
+            return JSON.stringify(response);
+        });
+    }
+    async getTokenAccountsByOwner(address, programId, encoding = 'jsonParsed') {
+        return await rpcQueue_1.rpcQueue.enqueue(async () => {
+            console.log('getTokenAccountsByOwner called with address:', address.toBase58(), 'programId:', programId.toBase58(), 'and encoding:', encoding);
+            const payload = {
+                id: 1,
+                jsonrpc: '2.0',
+                method: 'getTokenAccountsByOwner',
+                params: [
+                    address.toBase58(),
+                    { programId: programId.toBase58() },
+                    { encoding },
+                ],
+            };
+            console.log('Payload for getTokenAccountsByOwner:', payload);
+            const response = await this.retryingFastTransport({ payload });
+            console.log('Response from getTokenAccountsByOwner:', response);
+            return response.result;
+        });
+    }
+    async getMultipleAccountInfo(addresses) {
+        const results = [];
+        const batchSize = 100;
+        // Split addresses into batches of 100
+        const batches = [];
+        for (let i = 0; i < addresses.length; i += batchSize) {
+            batches.push(addresses.slice(i, i + batchSize));
+        }
+        for (const batch of batches) {
+            const batchResults = await rpcQueue_1.rpcQueue.enqueue(async () => {
+                const payload = {
+                    id: 1,
+                    jsonrpc: '2.0',
+                    method: 'getMultipleAccounts',
+                    params: [batch.map(address => address.toBase58()), { encoding: 'base64' }],
+                };
+                console.log('Payload for getMultipleAccounts:', payload);
+                const response = await this.retryingFastTransport({ payload });
+                console.log('Response from getMultipleAccounts:', response);
+                const result = response.result;
+                if (result?.value && result.value != null) {
+                    result.value.forEach((accountInfo, index) => {
+                        console.log(`Account info for address at index ${index}:`, accountInfo);
+                        if (accountInfo?.data) {
+                            const [data, encoding] = accountInfo.data;
+                            if (accountInfo === null || accountInfo.data === null) {
+                                console.log(`Account info is null for address at index ${index}:`, batch[index].toBase58());
+                                return;
+                            }
+                            if (encoding === 'base64') {
+                                const decoded = Buffer.from(data, 'base64');
+                                console.log(`Decoded data for address at index ${index}:`, decoded);
+                                try {
+                                    // Attempt to parse string to JSON
+                                    const jsonObject = JSON.parse(decoded.toString());
+                                    console.log(`Decoded JSON for address at index ${index}:`, jsonObject);
+                                    accountInfo.data = jsonObject; // Overwrite data with decoded buffer
+                                    console.log(`Decoded data for account at index ${index}:`, jsonObject);
+                                }
+                                catch (error) {
+                                    accountInfo.data = decoded; // Fallback to raw decoded buffer
+                                    console.log(`Fallback raw decoded data for account at index ${index}:`, decoded);
+                                }
+                            }
+                        }
+                        else {
+                            console.log(`No data found for address at index ${index}:`, batch[index].toBase58());
+                        }
+                    });
+                }
+                return result?.value || [];
+            });
+            results.push(...batchResults);
+        }
+        return results;
+    }
 }
 exports.SolanaRpcClient = SolanaRpcClient;
 //# sourceMappingURL=SmartRoundRobinRPC.js.map

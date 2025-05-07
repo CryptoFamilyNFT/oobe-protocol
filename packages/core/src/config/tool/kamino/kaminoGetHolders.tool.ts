@@ -5,7 +5,7 @@ import { PublicKey } from "@solana/web3.js";
 import { StructuredTool } from "langchain/tools";
 
 export class GetKaminoHoldersTool extends StructuredTool {
-    name = "get_kamino_holders";
+    name = "get_kamino_holders_for_strategy";
     description = "Get the token holders of a Kamino strategy.";
 
     constructor(

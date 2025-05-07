@@ -15,7 +15,6 @@ const kaminoGetSharePriceStrategy_tool_1 = require("./kamino/kaminoGetSharePrice
 const kaminoWithdrawShares_tool_1 = require("./kamino/kaminoWithdrawShares.tool");
 const keminoCreateMemoWithStrategy_tool_1 = require("./kamino/keminoCreateMemoWithStrategy.tool");
 const IQimageInscription_tool_1 = require("./iq/IQimageInscription.tool");
-const IQTextInscription_tool_1 = require("./iq/IQTextInscription.tool");
 const buyTokenJup_1 = require("./jup/buyTokenJup");
 const sellTokenJup_1 = require("./jup/sellTokenJup");
 const token_2022_tool_1 = require("./oobe/token_2022.tool");
@@ -36,9 +35,13 @@ const fetch_agent_wallet_1 = require("./solana/fetch_agent_wallet");
 const tps_tool_1 = require("./solana/tps.tool");
 const transfer_tool_1 = require("./solana/transfer.tool");
 const bufferInput_tool_1 = require("./utils/bufferInput.tool");
+const wrapperToolsStructured_1 = require("./utils/wrapperToolsStructured");
+const a_personality_tool_1 = require("./agent-personality/a-personality.tool");
+const g_personality_tool_1 = require("./agent-personality/g-personality.tool");
+const u_personality_tool_1 = require("./agent-personality/u-personality.tool");
 async function createSolanaTools(agent) {
     const kamino = new kamino_operation_1.kaminoOperations(agent);
-    return [
+    return (0, wrapperToolsStructured_1.wrapAllTools)([
         new balance_of_tool_1.SolanaBalanceOtherTool(agent),
         new balance_tool_1.SolanaBalanceTool(agent),
         new close_empty_account_tool_1.SolanaCloseEmptyTokenAccounts(agent),
@@ -47,7 +50,7 @@ async function createSolanaTools(agent) {
         new createTokenPF_1.SolanaPumpfunTokenLaunchTool(agent),
         new createImage_tool_1.SolanaCreateImageTool(agent),
         new IQimageInscription_tool_1.SolanaIQImageTool(agent),
-        new IQTextInscription_tool_1.SolanaIQTextTool(agent),
+        //new SolanaIQTextTool(agent),
         new buyTokenRay_1.RaydiumBuyTokenTool(agent),
         new sellTokenRay_1.RaydiumSellTokenTool(agent),
         new token_2022_tool_1.createToken2022Tool(agent),
@@ -69,10 +72,13 @@ async function createSolanaTools(agent) {
         new kaminoGetSharePriceStrategy_tool_1.GetKaminoSharePriceTool(kamino),
         new kaminoGetHolders_tool_1.GetKaminoHoldersTool(kamino),
         new kaminoDepositShares_tool_1.DepositSharesTool(kamino),
-        new kaminoWithdrawShares_tool_1.WithdrawSharesTool(kamino), // ✅ Aggiunto
-        new kaminoClaimRewards_tool_1.ClaimRewardsTool(kamino), // ✅ Aggiunto
+        new kaminoWithdrawShares_tool_1.WithdrawSharesTool(kamino),
+        new kaminoClaimRewards_tool_1.ClaimRewardsTool(kamino),
         new keminoCreateMemoWithStrategy_tool_1.CreateMemoWithStrategyKeyTool(kamino),
         new kaminoGetAssociateTokens_tools_1.GetAssociatedForTokensAndSharesTool(kamino),
-    ];
+        new a_personality_tool_1.PersonalityTool(agent),
+        new g_personality_tool_1.GetPersonalityTool(agent),
+        new u_personality_tool_1.UsePersonalityTool(agent)
+    ]);
 }
 //# sourceMappingURL=index.tool.js.map

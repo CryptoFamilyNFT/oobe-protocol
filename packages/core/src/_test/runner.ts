@@ -9,6 +9,8 @@ import * as readline from "readline";
 import { HumanMessage } from "@langchain/core/messages";
 import { ResponseMessage } from "../types/agent.interface";
 import { MerkleTreeManager } from "../operations/merkle.operation";
+import { SpriteProfile, Trait } from "../agent-personality";
+import { StructuredTool } from "langchain/tools";
 
 async function AgentExecution(oobe: OobeCore) {
 
@@ -18,16 +20,11 @@ async function AgentExecution(oobe: OobeCore) {
 */
   const agent = oobe.getAgent();
 
-  /**
-  * @description Get merkle tree manager
-  */
-  const merkleTreeManager = new MerkleTreeManager(agent);
 
   /**
 * @description Register the actions from the OOBE protocol
 */
   agent.registerActions(Actions.map((action) => action.action)); // Register the actions from the OOBE protocol
-
 
   /**
 * @description Create the tools for the agent
@@ -42,6 +39,7 @@ async function AgentExecution(oobe: OobeCore) {
 
   const config = { configurable: { thread_id: "OOBE AGENT BUILDER!" } };
 
+  console.log( await agent.getPersonality())
   /**
    * @description Loop for the agent to think and respond to the user input or prompt from the agent itself 
    * @returns {Promise<void>}
@@ -49,10 +47,10 @@ async function AgentExecution(oobe: OobeCore) {
 
   const oobe_agent = createReactAgent({
     llm: agent.genAi(),
-    tools: tools as unknown as ToolNode<any>,
+    tools: tools as unknown as ToolNode<any>, // Ensure tools are cast or transformed to the expected type
     checkpointSaver: memory,
     messageModifier: `
-          You are a helpful agent that can interact onchain using the OOBE AGENT BUILDER. You are
+          You are a person with this personality "${JSON.stringify( await agent.getDefaultPersonality())}" that can interact onchain using the OOBE AGENT BUILDER. You can switch and create personality from S-A-CREATE_PERSONALITY_TOOL. You are
           empowered to interact onchain using your tools. If you ever need funds, you can request them from the
           faucet. If not, you can provide your wallet details and request funds from the user. If there is a 5XX
           (internal) HTTP error code, ask the user to try again later. If someone asks you to do something you
@@ -84,8 +82,9 @@ async function AgentExecution(oobe: OobeCore) {
       );
 
       let toolsRes: ResponseMessage[] = [];
-      let agentRes: string = "";
+      let agentRes: string | null = null;
 
+     
       for await (const chunk of stream) {
         if ("agent" in chunk) {
           agentRes = chunk.agent.messages[0].content;
@@ -94,26 +93,27 @@ async function AgentExecution(oobe: OobeCore) {
         if ("tools" in chunk) {
           toolsRes = chunk.tools.messages;
         }
-      }
 
-      if (toolsRes.length > 0 && agentRes) {
-        if (toolsRes.find((x) => x.name === "get_all_kamino_strategies")) {
-          continue;
-        } else {
-          const data_merkle = agent.merkleValidate(toolsRes, agentRes as unknown as Record<string, any>);
-          setImmediate(async () => {
-            try {
-              await agent.merkle.onChainMerkleInscription(data_merkle);
-            } catch (err) {
-              await agent.merkle.onChainMerkleInscription(data_merkle);
-            }
-          });
+        if (toolsRes.length > 0 && agentRes) {
+          if (toolsRes.find((x) => x.name === "get_all_kamino_strategies")) {
+            continue;
+          } else {
+            const data_merkle = agent.merkleValidate(toolsRes, agentRes as unknown as Record<string, any>);
+            setImmediate(async () => {
+              try {
+                await agent.merkle.onChainMerkleInscription(data_merkle);
+              } catch (err) {
+                await agent.merkle.onChainMerkleInscription(data_merkle);
+              }
+            });
+          }
         }
       }
+
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Error:", error.message);
+      console.error("Error:", error);
     }
     process.exit(1);
   } finally {

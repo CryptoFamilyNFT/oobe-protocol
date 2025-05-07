@@ -13,11 +13,11 @@ import {
   ORCA_WHIRLPOOL_PROGRAM_ID,
 } from "@orca-so/whirlpools-sdk";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import { Tool } from "langchain/tools";
-import { stat } from "fs";
+import { StructuredTool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class orcaClosePositionTool extends Tool {
+export class orcaClosePositionTool extends StructuredTool {
 
   name = "ORCA_CLOSE_POSITION";
   description = `This tool can be used to close a position on Orca.
@@ -29,7 +29,9 @@ export class orcaClosePositionTool extends Tool {
     positionMintAddress: string, eg "8243mJtEQZSEYh5DBmvHSwrN8tmcYkAuG67CgoT2pump",
     `;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+    positionMintAddress: z.string().describe("The mint address of the position to close"),
+  })) {
     super();
   }
 

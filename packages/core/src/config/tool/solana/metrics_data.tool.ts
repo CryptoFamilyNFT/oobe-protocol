@@ -1,8 +1,9 @@
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { RugCheck } from "../../../types/rugCheck.interface";
 import { Pair } from "../../../types/dex.interface";
+import { z } from "zod";
 
-export class MetricsDataToolStudyLogics extends Tool {
+export class MetricsDataToolStudyLogics extends StructuredTool {
     name = "metrics_data_tool_study_logics";
     description = `Analyzes market data to provide entry/exit points, risk assessment, RSI analysis, and insights.
     Inputs ( input is a JSON string ):
@@ -12,13 +13,17 @@ export class MetricsDataToolStudyLogics extends Tool {
         poolDetails: string // JSON string of pool details
     }`;
 
-    constructor() {
+    constructor(override schema = z.object({
+        token: z.string(),
+        analysis: z.string().describe("JSON string of RugCheck"),
+        poolDetails: z.string().describe("JSON string of pool details") // JSON string of pool details
+    })) {
         super();
     }
 
-    async _call(input: string): Promise<string> {
+    async _call(input: z.infer<typeof this.schema>): Promise<string> {
         try {
-            const { token, analysis, poolDetails } = JSON.parse(input);
+            const { token, analysis, poolDetails } = JSON.parse(JSON.stringify(input));
             const rugCheck: RugCheck = JSON.parse(analysis);
             const poolData: Pair =  JSON.parse(poolDetails);
 

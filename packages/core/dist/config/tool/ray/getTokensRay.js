@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RaydiumGetTokensTool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class RaydiumGetTokensTool extends tools_1.Tool {
+const zod_1 = require("zod");
+class RaydiumGetTokensTool extends tools_1.StructuredTool {
     constructor(agent) {
         super();
         this.agent = agent;
@@ -11,6 +12,7 @@ class RaydiumGetTokensTool extends tools_1.Tool {
     Do not use this tool for any other purpose, or for creating SPL tokens.
     generate good values for the parameters for a good trade. aspetta 10 secondi prima di fare la richiesta.
     `;
+        this.schema = zod_1.z.object({}).describe("This tool does not require any input.");
     }
     async _call() {
         try {
@@ -19,8 +21,17 @@ class RaydiumGetTokensTool extends tools_1.Tool {
             return JSON.stringify(result);
         }
         catch (error) {
-            console.error("Error in RAYDIUM_GET_TOKENS tool:", error);
-            throw new Error("Failed to fetch tokens on Raydium");
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+            });
         }
     }
 }

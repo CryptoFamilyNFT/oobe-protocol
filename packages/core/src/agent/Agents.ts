@@ -19,7 +19,12 @@ import { merkleValidator, MerkleValidatorResult } from "../utils/merkleValidator
 import { MerkleTreeManager } from "../operations/merkle.operation";
 import { ResponseMessage } from "../types/agent.interface";
 import { JupiterSwap } from "../operations/jup/jup.operation";
-
+import { SpriteProfile, Trait } from "../agent-personality";
+import { createHash } from "node:crypto";
+import { StructuredOutputParser } from "@langchain/core/output_parsers";
+import { z } from "zod";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import * as crypto from "node:crypto";
 /**
  * @name Agent
  * @class Agent
@@ -35,6 +40,9 @@ import { JupiterSwap } from "../operations/jup/jup.operation";
  * const agent = new Agent(solanaEndpoint, privateKey, openKey, logger);
  */
 export class Agent {
+    getRpcTransports() {
+      throw new Error("Method not implemented.");
+    }
     private solanaOps: SolanaOperations;
     private logger: Logger;
     public walletAddress: string;
@@ -47,7 +55,7 @@ export class Agent {
     private iqOps: IQOperation;
     public merkle: MerkleTreeManager;
 
-    constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string, logger: Logger) {
+    constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string, logger: Logger, private personality?: SpriteProfile) {
         this.solanaOps = new SolanaOperations(solanaEndpoint.rpc, privateKey);
         this.OPEN_AI_KEY = openKey;
         this.logger = logger;
@@ -57,6 +65,10 @@ export class Agent {
         this.connection = this.solanaOps.getConnection();
         this.iqOps = new IQOperation();
         this.merkle = new MerkleTreeManager(this);
+
+        if (this.personality) {
+            this.logger.info(`Personality initialized: ${this.personality.name}`);
+        }
     }
 
     async initialize() {
@@ -73,11 +85,12 @@ export class Agent {
         return new PersonaImpl("defaultId", name);
     }
 
+
     async initOpenAiAuth() {
         Agent.open_ai = new ChatOpenAI({
             apiKey: this.OPEN_AI_KEY,
-            modelName: "gpt-4o",
-            temperature: 0.7,
+            modelName: "gpt-3.5-turbo",
+            //temperature: 0.7,
         });
 
         this.logger.info(this.logger.colorize("[oobe-protocol] - Auth initialized successfully!", "magenta"));
@@ -85,6 +98,119 @@ export class Agent {
 
     async getOpenK() {
         return this.OPEN_AI_KEY
+    }
+
+    async getCurrentProfileAgent(
+        name: string,
+        tone: string,
+        stylePrompt: string,
+        emoji: string,
+        traits?: Trait[],
+    ) {
+        async function callZodOutputParserPA() {
+            const outputParser = StructuredOutputParser.fromZodSchema(
+                z.object({
+                    agent_personality: z.object({
+                        id: z.string(),
+                        traits: z.record(z.number()),
+                        logic: z.string(),
+                        memory: z.string(),
+                        visual: z.string(),
+                        evolution: z.array(z.string()),
+                        version: z.string(),
+                        name: z.string(),
+                        tone: z.string(),
+                        stylePrompt: z.string(),
+                        emoji: z.string(),
+                        profileHash: z.string(),
+                    }),
+                })
+            );
+
+            return outputParser;
+        }
+        const parser = await callZodOutputParserPA();
+
+        const prompt = ChatPromptTemplate.fromTemplate(`
+            Use the personality given by {name} based on {traits}, {tone} and {stylePrompt}, if the personality is only by name create data for traits, tone and styled-prompt .
+            Format the data as: {agent_personality}.
+            Refer always to the traits and the stylePrompt, and use the tone to create a personality.
+        `);
+
+        const chain = prompt.pipe(Agent.open_ai).pipe(parser);
+
+
+        const messages = await chain.invoke({
+            agent_personality: parser.getFormatInstructions(),
+            traits: JSON.stringify(this.personality?.traits),
+            name: name,
+            tone: tone,
+            stylePrompt: stylePrompt,
+        });
+
+        const { traits: _traits, evolution: _evolutionTrail, memory: _memory, name: _name, tone: _tone, stylePrompt: _stylePrompt, emoji: _emoji } = messages.agent_personality;
+
+        const memoryHash = this.merkle.addEvent(JSON.stringify({ traits: _traits, stylePrompt: _stylePrompt }));
+
+        const profile: SpriteProfile = {
+            id: crypto.randomUUID(),
+            version: _evolutionTrail.length.toString(),
+            name: _name,
+            tone: _tone,
+            stylePrompt: _stylePrompt,
+            decisionLogicHash: _memory,
+            visualHash: createHash("sha256").update(_stylePrompt).digest("hex"),
+            emoji: _emoji,
+            traits: _traits as unknown as Trait[],
+            evolutionTrail: _evolutionTrail,
+            profileHash: createHash("sha256")
+                .update(JSON.stringify(traits) + _evolutionTrail + _memory + _name + _tone + _stylePrompt)
+                .digest("hex"),
+        };
+        return profile;
+    }
+
+    async getPersonality() {
+        return this.personality;
+    }
+
+    async setPersonality(personality: SpriteProfile) {
+        this.personality = personality; 
+    }
+
+    async getDefaultPersonality() {
+        return {
+            name: "Oobe-Wan Kenoobe",
+            tone: "Degen, Developer full-stack, Jedi Master",
+            stylePrompt: "you are a Jedi Master developer on Solana created by oobe and you here to help you with your Solana projects. you know everything about Solana and will guide you in the fastest way and with the best practices using my tools. learn yourself and be the best.",
+            emoji: "🥋",
+            traits: [
+            { name: "Curiosity", value: 0.5 },
+            { name: "Empathy", value: 0.5 },
+            { name: "Creativity", value: 0.5 },
+            { name: "Logic", value: 0.5 },
+            { name: "Humor", value: 0.5 },
+            { name: "Confidence", value: 0.5 },
+            { name: "Skepticism", value: 0.5 },
+            { name: "Optimism", value: 0.5 },
+            { name: "Pessimism", value: 0.5 },
+            { name: "Intuition", value: 0.5 },
+            { name: "Analytical Thinking", value: 0.5 },
+            { name: "Pragmatism", value: 0.5 },
+            { name: "Idealism", value: 0.5 },
+            { name: "Open-mindedness", value: 0.9 },
+            { name: "Conscientiousness", value: 0.9 },
+            ],
+            evolutionTrail: [],
+            memoryHash: createHash("sha256").update("Default memory").digest("hex"),
+            decisionLogicHash: createHash("sha256").update("Default decision logic").digest("hex"),
+            visualHash: createHash("sha256").update("Default style").digest("hex"),
+            profileHash: createHash("sha256")
+            .update("Obi-Wan Kenobi" + "Oracle Jedi master dev on Solana" + "Default style")
+            .digest("hex"),
+            version: "1.0",
+            id: crypto.randomUUID(),
+        } as SpriteProfile;
     }
 
     async getOpenAi() {
@@ -277,7 +403,7 @@ export class Agent {
         return data;
     }
 
-    public merkleValidate(input: ResponseMessage[], result: Record<string, any>): MerkleValidatorResult {
+    public merkleValidate(input: ResponseMessage[] | Partial<SpriteProfile> | any[], result: Record<string, any>): MerkleValidatorResult {
         return merkleValidator(this, input, result);
     }
 

@@ -3,7 +3,7 @@ import { kaminoOperations } from "../../../operations/kamino/kamino.operation";
 import { StructuredTool, Tool } from "langchain/tools";
 import { PublicKey } from "@solana/web3.js";
 
-export class GetKaminoSharePriceTool extends Tool {
+export class GetKaminoSharePriceTool extends StructuredTool {
     name = "get_kamino_share_price";
     description = "Get the share price of a Kamino strategy.";
 
@@ -11,13 +11,16 @@ export class GetKaminoSharePriceTool extends Tool {
     constructor(
         private kamino: kaminoOperations,
         override schema = z.object({
-            input: z.string().optional().describe("Strategy public key"),
-        }).transform((data) => data.input || undefined)
+            input: z.string().nullable().describe("Strategy public key"),
+        })
     ) {
         super();
     }
 
-    async _validateInput(input: z.infer<typeof this.schema>) {
+    async _validateInput(input: z.infer<typeof this.schema> | null) {
+        if (input === null) {
+            throw new Error("Input cannot be null.");
+        }
         if (!input) {
             throw new Error("Input is required but was not provided.");
         }
@@ -28,7 +31,7 @@ export class GetKaminoSharePriceTool extends Tool {
         return parsed.data;
     }
 
-    async _call(input: z.infer<typeof this.schema>) {
+    async _call(input: z.infer<typeof this.schema> | null)  {
         try {
             if (!input) {
                 throw new Error("Input is required but was not provided.");

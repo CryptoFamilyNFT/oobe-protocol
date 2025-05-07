@@ -6,7 +6,7 @@ import { StructuredTool } from "langchain/tools";
 import { SYSTEM_PROGRAM_ID } from "@raydium-io/raydium-sdk-v2";
 
 export class CreateMemoWithStrategyKeyTool extends StructuredTool {
-    name = "create_memo_with_strategy_key";
+    name = "create_memo_with_strategy_key_for_kamino_strategy";
     description = "Creates a memo log on Solana with an encrypted strategy key.";
 
     schema = z.object({

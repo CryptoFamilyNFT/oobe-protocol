@@ -15,10 +15,11 @@ import {
 } from "@orca-so/whirlpools-sdk";
 import { FEE_TIERS } from "../../../utils/orca/orcaUtils";
 import { Agent } from "../../../agent/Agents";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
+import { z } from "zod";
 
-export class orcaCreateClmm extends Tool {
+export class orcaCreateClmm extends StructuredTool {
 
   name = "ORCA_CLOSE_POSITION";
   description = `This tool can be used to close a position on Orca.
@@ -33,16 +34,21 @@ export class orcaCreateClmm extends Tool {
       feeTier: number, eg "1",
       `;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+      mintDeploy: z.string().describe("The mint address to deploy"),
+      mintPair: z.string().describe("The mint address of the pair"),
+      initialPrice: z.number().describe("The initial price for the position"),
+      feeTier: z.enum(Object.keys(FEE_TIERS) as [string, ...string[]]).describe("The fee tier for the pool"),
+  })) {
     super();
   }
 
   protected async _call(
-    input: string,
+    input: z.infer<typeof this.schema>,
   ): Promise<string> {
     const { mintDeploy, mintPair, initialPrice, feeTier }: 
-          { mintDeploy: string; mintPair: string; initialPrice: number; feeTier: keyof typeof FEE_TIERS } = JSON.parse(input);
-    let initPrice = new Decimal(initialPrice)
+          { mintDeploy: string; mintPair: string; initialPrice: number; feeTier: keyof typeof FEE_TIERS } = JSON.parse(JSON.stringify(input));
+    let initPrice = new Decimal(initialPrice);
     try {
       const whirlpoolsConfigAddress = new PublicKey(
         "2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ",
@@ -133,8 +139,12 @@ export class orcaCreateClmm extends Tool {
         transactionId: txId,
         whirlpoolAddress: poolKey.toString(),
       });
-    } catch (error) {
-      throw new Error(`${error}`);
+    } catch (error: any) {
+      return JSON.stringify({
+        status: "error",
+        message: error.message,
+        code: error.code || "UNKNOWN_ERROR",
+      });
     }
   }
 }

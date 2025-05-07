@@ -1,4 +1,4 @@
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { kaminoOperations } from "../../../operations/kamino/kamino.operation";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "@langchain/core/documents";
@@ -6,9 +6,12 @@ import { z } from "zod";
 import path from "path";
 import { promises as fs } from "node:fs";
 
-export class GetAllKaminoStrategiesTool extends Tool {
+export class GetAllKaminoStrategiesTool extends StructuredTool {
   name = "get_all_kamino_strategies";
   description = "Returns a list of all Kamino strategies.";
+
+  schema = z.object({
+  }).describe("No input required");
 
   constructor(private kamino: kaminoOperations) {
     super();

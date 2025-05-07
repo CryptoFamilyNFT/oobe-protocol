@@ -8,7 +8,7 @@ class GetAssociatedForTokensAndSharesTool extends tools_1.StructuredTool {
     constructor(kamino) {
         super();
         this.kamino = kamino;
-        this.name = "get_associated_token_and_shares";
+        this.name = "get_associated_token_and_shares_for_kamino_strategy";
         this.description = "Get associated token addresses and data for a Kamino strategy.";
         this.schema = zod_1.z.object({
             address: zod_1.z.string().describe("Strategy public key"),

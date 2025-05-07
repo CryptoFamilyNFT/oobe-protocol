@@ -11,7 +11,7 @@ class GetKaminoHoldersTool extends tools_1.StructuredTool {
         super();
         this.kamino = kamino;
         this.schema = schema;
-        this.name = "get_kamino_holders";
+        this.name = "get_kamino_holders_for_strategy";
         this.description = "Get the token holders of a Kamino strategy.";
     }
     async _call(input) {

@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class SolanaTransferTool extends Tool {
+export class SolanaTransferTool extends StructuredTool {
   name = "solana_transfer";
   description = `Transfer tokens or SOL to another address ( also called as wallet address ).
 
@@ -11,13 +12,17 @@ export class SolanaTransferTool extends Tool {
   amount: number, eg 1 (required)
   mint?: string, eg "So11111111111111111111111111111111111111112" or "SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa" (optional)`;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+    to: z.string().describe("Recipient wallet address"),
+    amount: z.number().describe("Amount to transfer"),
+    mint: z.string().optional().nullable().describe("Mint address of the token (optional)"),
+  })) {
     super();
   }
 
-  protected async _call(input: string): Promise<string> {
+  protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
     try {
-      const parsedInput = JSON.parse(input);
+      const parsedInput = input;
 
       const recipient = new PublicKey(parsedInput.to);
       const mintAddress = parsedInput.mint

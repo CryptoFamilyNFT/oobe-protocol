@@ -36,10 +36,14 @@ import { MetricsDataToolStudyLogics } from "./solana/metrics_data.tool";
 import { SolanaTPSCalculatorTool } from "./solana/tps.tool";
 import { SolanaTransferTool } from "./solana/transfer.tool";
 import { BufferInputTool } from "./utils/bufferInput.tool";
+import { wrapAllTools } from "./utils/wrapperToolsStructured";
+import { PersonalityTool } from "./agent-personality/a-personality.tool";
+import { GetPersonalityTool } from "./agent-personality/g-personality.tool";
+import { UsePersonalityTool } from "./agent-personality/u-personality.tool";
 
 export async function createSolanaTools(agent: Agent) {
     const kamino = new kaminoOperations(agent);
-    return [
+    return wrapAllTools([
         new SolanaBalanceOtherTool(agent),
         new SolanaBalanceTool(agent),
         new SolanaCloseEmptyTokenAccounts(agent),
@@ -48,7 +52,7 @@ export async function createSolanaTools(agent: Agent) {
         new SolanaPumpfunTokenLaunchTool(agent),
         new SolanaCreateImageTool(agent),
         new SolanaIQImageTool(agent),
-        new SolanaIQTextTool(agent),
+        //new SolanaIQTextTool(agent),
         new RaydiumBuyTokenTool(agent),
         new RaydiumSellTokenTool(agent),
         new createToken2022Tool(agent),
@@ -70,9 +74,12 @@ export async function createSolanaTools(agent: Agent) {
         new GetKaminoSharePriceTool(kamino),
         new GetKaminoHoldersTool(kamino),
         new DepositSharesTool(kamino),
-        new WithdrawSharesTool(kamino),              // ✅ Aggiunto
-        new ClaimRewardsTool(kamino),                // ✅ Aggiunto
+        new WithdrawSharesTool(kamino),              
+        new ClaimRewardsTool(kamino),                
         new CreateMemoWithStrategyKeyTool(kamino),
         new GetAssociatedForTokensAndSharesTool(kamino),
-    ]
+        new PersonalityTool(agent),
+        new GetPersonalityTool(agent),
+        new UsePersonalityTool(agent)
+    ]);
 }

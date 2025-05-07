@@ -1,10 +1,11 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { sign } from "crypto";
+import { z } from "zod";
 
-export class JupiterBuyTokenTool extends Tool {
+export class JupiterBuyTokenTool extends StructuredTool {
 
     name = "JUPITER_BUY_TOKEN";
     description = `This tool can be used to buy a token though Jupiter. Await the solana_balance tool response before starting validation and Use the solana_balance tool pointed to "your" agent wallet before and after this tool to check the balance in sol and check your balance in this tokenAddress
@@ -19,9 +20,15 @@ export class JupiterBuyTokenTool extends Tool {
     tokenMint: string, eg "8243mJtEQZSEYh5DBmvHSwrN8tmcYkAuG67CgoT2pump",
     amount: number, eg "0.1",
     slippage: number, eg "0.5",
+    balanceSol: number, eg "2.3",
     `;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        tokenMint: z.string().describe("Contract address of the token to buy"),
+        amount: z.number().min(0.0000001).describe("Amount in SOL used to buy"),
+        slippage: z.number().min(0.5).max(18).default(1).describe("Slippage percentage").optional().nullable(),
+        balanceSol: z.number().describe("Balance of the agent wallet in SOL").optional().nullable(),
+    })) {
         super();
     }
 
@@ -34,12 +41,12 @@ export class JupiterBuyTokenTool extends Tool {
         }
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         try {
             console.log("Input received in JUPITER_BUY_TOKEN tool:", input);
 
             // Ensure input is correctly parsed
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             if (!parsedInput || typeof parsedInput !== 'object') {
                 throw new Error("Invalid input format, expected JSON object.");
             }

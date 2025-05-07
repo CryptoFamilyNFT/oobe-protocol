@@ -3,10 +3,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PerpOpenTradeTool = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const tools_1 = require("langchain/tools");
-class PerpOpenTradeTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class PerpOpenTradeTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        collateralAmount: zod_1.z.number(),
+        collateralMint: zod_1.z.string().optional().nullable(),
+        tradeMint: zod_1.z.string().optional().nullable(),
+        leverage: zod_1.z.number().optional().nullable(),
+        price: zod_1.z.number().optional().nullable(),
+        slippage: zod_1.z.number().optional().nullable(),
+        side: zod_1.z.string().refine(val => val === "long" || val === "short", {
+            message: "Side must be either 'long' or 'short'",
+        }),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "open_perp_trade";
         this.description = `This tool can be used to open perpetuals trade ( It uses Adrena Protocol ).
 
@@ -21,7 +33,7 @@ class PerpOpenTradeTool extends tools_1.Tool {
     }
     async _call(input) {
         try {
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             const tx = parsedInput.side === "long"
                 ? await this.agent.openPerpTradeLong({
                     price: parsedInput.price,

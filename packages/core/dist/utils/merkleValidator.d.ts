@@ -1,3 +1,4 @@
+import { SpriteProfile } from "../agent-personality";
 import { Agent } from "../agent/Agents";
 import { ResponseMessage } from "../types/agent.interface";
 export interface MerkleValidator {
@@ -18,5 +19,5 @@ export interface MerkleValidatorResult {
     };
     merkleEvents: string | null;
 }
-export declare function merkleValidator(agent: Agent, input: ResponseMessage[], result: Record<string, any>): MerkleValidatorResult;
+export declare function merkleValidator(agent: Agent, input: ResponseMessage[] | Partial<SpriteProfile> | any[], result: Record<string, any>): MerkleValidatorResult;
 //# sourceMappingURL=merkleValidator.d.ts.map

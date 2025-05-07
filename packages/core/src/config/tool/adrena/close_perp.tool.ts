@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class PerpCloseTradeTool extends Tool {
+export class PerpCloseTradeTool extends StructuredTool {
   name = "solana_close_perp_trade";
   description = `This tool can be used to close perpetuals trade ( It uses Adrena Protocol ).
 
@@ -11,13 +12,29 @@ export class PerpCloseTradeTool extends Tool {
   price?: number, eg 100 (optional)
   side: string, eg: "long" or "short"`;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+    tradeMint: z.string().optional().nullable(),
+    price: z.number().optional().nullable(),
+    side: z.string().refine(val => val === "long" || val === "short", {
+      message: "Side must be either 'long' or 'short'",
+    }),
+  })) {
     super();
   }
 
-  protected async _call(input: string): Promise<string> {
+  protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
     try {
-      const parsedInput = JSON.parse(input);
+      const parsedInput = JSON.parse(JSON.stringify(input));
+
+      if (!parsedInput.tradeMint) {
+        return JSON.stringify({
+          status: "error",
+          message: "tradeMint is required",
+          code: "INVALID_INPUT",
+        });
+      }
+
+
 
       const tx =
         parsedInput.side === "long"

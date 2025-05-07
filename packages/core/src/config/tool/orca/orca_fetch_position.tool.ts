@@ -8,7 +8,8 @@ import {
     getAllPositionAccountsByOwner,
     PriceMath,
 } from "@orca-so/whirlpools-sdk";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
+import { z } from "zod";
 
 interface PositionInfo {
     whirlpoolAddress: string;
@@ -19,7 +20,7 @@ interface PositionInfo {
 type PositionDataMap = {
     [positionMintAddress: string]: PositionInfo;
 };
-export class orcaFetchPositionTool extends Tool {
+export class orcaFetchPositionTool extends StructuredTool {
 
     name = "ORCA_FETCH_POSITION";
     description = `Returns A JSON string with an object mapping position mint addresses to position details:
@@ -32,7 +33,8 @@ export class orcaFetchPositionTool extends Tool {
   }
     `;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+    })) {
         super();
     }
 
@@ -102,8 +104,12 @@ export class orcaFetchPositionTool extends Tool {
                 };
             }
             return JSON.stringify(result);
-        } catch (error) {
-            throw new Error(`${error}`);
+        } catch (error: any) {
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+          });
         }
     }
 }

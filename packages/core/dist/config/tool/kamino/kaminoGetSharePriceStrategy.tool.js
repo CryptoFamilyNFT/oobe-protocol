@@ -4,10 +4,10 @@ exports.GetKaminoSharePriceTool = void 0;
 const zod_1 = require("zod");
 const tools_1 = require("langchain/tools");
 const web3_js_1 = require("@solana/web3.js");
-class GetKaminoSharePriceTool extends tools_1.Tool {
+class GetKaminoSharePriceTool extends tools_1.StructuredTool {
     constructor(kamino, schema = zod_1.z.object({
-        input: zod_1.z.string().optional().describe("Strategy public key"),
-    }).transform((data) => data.input || undefined)) {
+        input: zod_1.z.string().nullable().describe("Strategy public key"),
+    })) {
         super();
         this.kamino = kamino;
         this.schema = schema;
@@ -15,6 +15,9 @@ class GetKaminoSharePriceTool extends tools_1.Tool {
         this.description = "Get the share price of a Kamino strategy.";
     }
     async _validateInput(input) {
+        if (input === null) {
+            throw new Error("Input cannot be null.");
+        }
         if (!input) {
             throw new Error("Input is required but was not provided.");
         }

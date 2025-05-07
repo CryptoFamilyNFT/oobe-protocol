@@ -2,10 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BufferInputTool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class BufferInputTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class BufferInputTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        input: zod_1.z.string().describe("Input data to be buffered"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "buffer_input";
         this.description = "This tool is used to buffer input data. It is not intended for direct use.";
         this.examples = [
@@ -21,10 +25,10 @@ class BufferInputTool extends tools_1.Tool {
             throw new Error("Input must be a string");
         }
         // Buffer the input data
-        input = input.trim();
-        const parsedInput = JSON.parse(input);
+        input = input;
+        const parsedInput = this.schema.parse(input);
         // Perform buffering operation
-        const bufferedData = Buffer.from(parsedInput).toString('base64');
+        const bufferedData = Buffer.from(parsedInput.input).toString('base64');
         return JSON.stringify({
             status: "success",
             bufferedData,

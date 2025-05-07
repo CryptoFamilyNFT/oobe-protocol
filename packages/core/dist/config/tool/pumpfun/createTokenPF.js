@@ -2,10 +2,33 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaPumpfunTokenLaunchTool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class SolanaPumpfunTokenLaunchTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class SolanaPumpfunTokenLaunchTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        tokenName: zod_1.z.string().min(1).max(32).describe("Name of the token"),
+        tokenTicker: zod_1.z
+            .string()
+            .min(2)
+            .max(10)
+            .describe("Ticker symbol of the token"),
+        description: zod_1.z
+            .string()
+            .min(1)
+            .max(1000)
+            .describe("Description of the token"),
+        imageUrl: zod_1.z.string().url().describe("URL of the token image"),
+        twitter: zod_1.z.string().optional().nullable().describe("Twitter handle (optional)"),
+        telegram: zod_1.z.string().optional().nullable().describe("Telegram group link (optional)"),
+        website: zod_1.z.string().url().optional().nullable().describe("Website URL (optional)"),
+        initialLiquiditySOL: zod_1.z
+            .number()
+            .optional()
+            .nullable()
+            .describe("Initial liquidity in SOL (optional)"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "solana_launch_pumpfun_token";
         this.description = `This tool can be used to launch a token on Pump.fun,
    do not use this tool for any other purpose, or for creating SPL tokens.
@@ -39,8 +62,7 @@ class SolanaPumpfunTokenLaunchTool extends tools_1.Tool {
     async _call(input) {
         try {
             // Parse and normalize input
-            input = input.trim();
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             this.validateInput(parsedInput);
             // Launch token with validated input
             await this.agent.launchPumpFunToken(this.agent, parsedInput.tokenName, parsedInput.tokenTicker, parsedInput.description, parsedInput.imageUrl, {
@@ -57,6 +79,12 @@ class SolanaPumpfunTokenLaunchTool extends tools_1.Tool {
             });
         }
         catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,

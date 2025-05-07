@@ -9,10 +9,14 @@ const common_sdk_1 = require("@orca-so/common-sdk");
 const whirlpools_sdk_1 = require("@orca-so/whirlpools-sdk");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 const tools_1 = require("langchain/tools");
-class orcaClosePositionTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class orcaClosePositionTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        positionMintAddress: zod_1.z.string().describe("The mint address of the position to close"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "ORCA_CLOSE_POSITION";
         this.description = `This tool can be used to close a position on Orca.
     Use the tool only for closing positions on Orca.

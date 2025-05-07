@@ -36,12 +36,13 @@ import {
     getAssociatedTokenAddressSync,
     TOKEN_2022_PROGRAM_ID,
 } from "spl-v1";
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
 import { FEE_TIERS } from "../../../utils/orca/orcaUtils";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
+import { z } from "zod";
 
-export class orcaCreateSsLp extends Tool {
+export class orcaCreateSsLp extends StructuredTool {
 
     name = "ORCA_CREATE_SS_LP";
     description = `This tool can be used to create single-sided liquidity on Orca.
@@ -67,7 +68,15 @@ export class orcaCreateSsLp extends Tool {
       @param maxPrice - The maximum price at which liquidity is added.
       `;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        
+        depositTokenAmount: z.number().describe("The amount of the deposit token to deposit in the pool"),
+        depositTokenMint: z.string().describe("The mint address of the token being deposited into the pool"),
+        otherTokenMint: z.string().describe("The mint address of the other token in the pool"),
+        initialPrice: z.instanceof(Decimal).describe("The initial price of the deposit token in terms of the other token"),
+        maxPrice: z.instanceof(Decimal).describe("The maximum price at which liquidity is added"),
+        feeTierBps: z.enum(Object.keys(FEE_TIERS) as [string, ...string[]]).describe("The fee tier for the pool"),
+    })) {
         super();
     }
 

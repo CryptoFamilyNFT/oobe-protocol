@@ -1,29 +1,27 @@
 import { z } from "zod";
 import { kaminoOperations } from "../../../operations/kamino/kamino.operation";
-import { Tool } from "langchain/tools";
-export declare class GetKaminoSharePriceTool extends Tool {
+import { StructuredTool } from "langchain/tools";
+export declare class GetKaminoSharePriceTool extends StructuredTool {
     private kamino;
-    schema: z.ZodEffects<z.ZodObject<{
-        input: z.ZodOptional<z.ZodString>;
+    schema: z.ZodObject<{
+        input: z.ZodNullable<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        input?: string | undefined;
+        input: string | null;
     }, {
-        input?: string | undefined;
-    }>, string | undefined, {
-        input?: string | undefined;
+        input: string | null;
     }>;
     name: string;
     description: string;
-    constructor(kamino: kaminoOperations, schema?: z.ZodEffects<z.ZodObject<{
-        input: z.ZodOptional<z.ZodString>;
+    constructor(kamino: kaminoOperations, schema?: z.ZodObject<{
+        input: z.ZodNullable<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        input?: string | undefined;
+        input: string | null;
     }, {
-        input?: string | undefined;
-    }>, string | undefined, {
-        input?: string | undefined;
+        input: string | null;
     }>);
-    _validateInput(input: z.infer<typeof this.schema>): Promise<string | undefined>;
-    _call(input: z.infer<typeof this.schema>): Promise<string>;
+    _validateInput(input: z.infer<typeof this.schema> | null): Promise<{
+        input: string | null;
+    }>;
+    _call(input: z.infer<typeof this.schema> | null): Promise<string>;
 }
 //# sourceMappingURL=kaminoGetSharePriceStrategy.tool.d.ts.map

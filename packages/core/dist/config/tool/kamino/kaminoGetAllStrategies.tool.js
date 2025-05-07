@@ -10,12 +10,13 @@ const documents_1 = require("@langchain/core/documents");
 const zod_1 = require("zod");
 const path_1 = __importDefault(require("path"));
 const node_fs_1 = require("node:fs");
-class GetAllKaminoStrategiesTool extends tools_1.Tool {
+class GetAllKaminoStrategiesTool extends tools_1.StructuredTool {
     constructor(kamino) {
         super();
         this.kamino = kamino;
         this.name = "get_all_kamino_strategies";
         this.description = "Returns a list of all Kamino strategies.";
+        this.schema = zod_1.z.object({}).describe("No input required");
         this.UPLOAD_DIR = path_1.default.join(__dirname, "../../uploads");
     }
     async ensureUploadDirExists() {

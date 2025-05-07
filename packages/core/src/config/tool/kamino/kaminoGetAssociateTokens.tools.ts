@@ -4,7 +4,7 @@ import { z } from "zod";
 import { PublicKey } from "@solana/web3.js";
 
 export class GetAssociatedForTokensAndSharesTool extends StructuredTool {
-    name = "get_associated_token_and_shares";
+    name = "get_associated_token_and_shares_for_kamino_strategy";
     description = "Get associated token addresses and data for a Kamino strategy.";
   
     schema = z.object({

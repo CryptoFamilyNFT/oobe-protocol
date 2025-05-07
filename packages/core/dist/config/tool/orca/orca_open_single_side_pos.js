@@ -7,10 +7,18 @@ const common_sdk_1 = require("@orca-so/common-sdk");
 const spl_v1_1 = require("spl-v1");
 const anchor_1 = require("@coral-xyz/anchor");
 const tools_1 = require("langchain/tools");
-class orcaOpenSingleSidePositionTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class orcaOpenSingleSidePositionTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        whirlpoolAddress: zod_1.z.string().describe("The address of the Whirlpool pool."),
+        inputTokenMint: zod_1.z.string().describe("The mint address of the input token."),
+        inputAmount: zod_1.z.number().describe("The amount of input token to be used."),
+        distanceFromCurrentPriceBps: zod_1.z.number().describe("The distance from the current price in basis points."),
+        widthBps: zod_1.z.number().describe("The width of the position in basis points."),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "ORCA_OPEN_SINGLE_SIDED_POSITION";
         this.description = `
     This tool can be used to open a single-sided position on Orca.
@@ -18,7 +26,7 @@ class orcaOpenSingleSidePositionTool extends tools_1.Tool {
     }
     async _call(input) {
         // Ensure input is correctly parsed
-        const parsedInput = JSON.parse(input);
+        const parsedInput = JSON.parse(JSON.stringify(input));
         const { whirlpoolAddress, inputTokenMint, inputAmount, distanceFromCurrentPriceBps, widthBps, } = parsedInput;
         try {
             const wallet = new anchor_1.Wallet(this.agent.wallet);
@@ -95,7 +103,11 @@ class orcaOpenSingleSidePositionTool extends tools_1.Tool {
             });
         }
         catch (error) {
-            throw new Error(`${error}`);
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+            });
         }
     }
 }

@@ -2,10 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaIQTextTool = void 0;
 const tools_1 = require("@langchain/core/tools");
-class SolanaIQTextTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class SolanaIQTextTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        message: zod_1.z.string().describe("Message to be inscribed"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "iq_code_in_text_inscription";
         this.description = `This tool can inscribe a text using the IQ6900 protocol optimization for data storage.
 
@@ -15,9 +19,9 @@ class SolanaIQTextTool extends tools_1.Tool {
     async _call(input) {
         try {
             // Parse and normalize input
-            input = input.trim();
-            console.log("input", input);
-            const result = await this.agent.generateCodeInIQInscription(input, "text", 10, 0.5);
+            const trimmedInput = input.message.trim();
+            console.log("input", trimmedInput);
+            const result = await this.agent.generateCodeInIQInscription(input.message, "text", 10, 0.5);
             return JSON.stringify(result);
         }
         catch (error) {

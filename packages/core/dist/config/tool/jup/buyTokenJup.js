@@ -3,10 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JupiterBuyTokenTool = void 0;
 const tools_1 = require("@langchain/core/tools");
 const web3_js_1 = require("@solana/web3.js");
-class JupiterBuyTokenTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class JupiterBuyTokenTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        tokenMint: zod_1.z.string().describe("Contract address of the token to buy"),
+        amount: zod_1.z.number().min(0.0000001).describe("Amount in SOL used to buy"),
+        slippage: zod_1.z.number().min(0.5).max(18).default(1).describe("Slippage percentage").optional().nullable(),
+        balanceSol: zod_1.z.number().describe("Balance of the agent wallet in SOL").optional().nullable(),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "JUPITER_BUY_TOKEN";
         this.description = `This tool can be used to buy a token though Jupiter. Await the solana_balance tool response before starting validation and Use the solana_balance tool pointed to "your" agent wallet before and after this tool to check the balance in sol and check your balance in this tokenAddress
     Do not use this tool for any other purpose.
@@ -20,6 +27,7 @@ class JupiterBuyTokenTool extends tools_1.Tool {
     tokenMint: string, eg "8243mJtEQZSEYh5DBmvHSwrN8tmcYkAuG67CgoT2pump",
     amount: number, eg "0.1",
     slippage: number, eg "0.5",
+    balanceSol: number, eg "2.3",
     `;
     }
     isValidBase58(address) {
@@ -35,7 +43,7 @@ class JupiterBuyTokenTool extends tools_1.Tool {
         try {
             console.log("Input received in JUPITER_BUY_TOKEN tool:", input);
             // Ensure input is correctly parsed
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             if (!parsedInput || typeof parsedInput !== 'object') {
                 throw new Error("Invalid input format, expected JSON object.");
             }

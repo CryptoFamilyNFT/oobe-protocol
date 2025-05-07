@@ -11,7 +11,7 @@ class GetKaminoCustomStrategyTool extends tools_1.StructuredTool {
         super();
         this.kamino = kamino;
         this.schema = schema;
-        this.name = "get_kamino_custom_strategy";
+        this.name = "get_kamino_custom_strategy_details";
         this.description = "Get specific Kamino strategy details by public key.";
     }
     async _call(input) {

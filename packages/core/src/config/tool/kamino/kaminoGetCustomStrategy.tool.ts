@@ -7,7 +7,7 @@ import Decimal from "decimal.js";
 
 
 export class GetKaminoCustomStrategyTool extends StructuredTool {
-    name = "get_kamino_custom_strategy";
+    name = "get_kamino_custom_strategy_details";
     description = "Get specific Kamino strategy details by public key.";
 
     constructor(

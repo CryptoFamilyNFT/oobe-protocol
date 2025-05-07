@@ -14,10 +14,19 @@ const spl_v1_1 = require("spl-v1");
 const tools_1 = require("langchain/tools");
 const orcaUtils_1 = require("../../../utils/orca/orcaUtils");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
-class orcaCreateSsLp extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class orcaCreateSsLp extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        depositTokenAmount: zod_1.z.number().describe("The amount of the deposit token to deposit in the pool"),
+        depositTokenMint: zod_1.z.string().describe("The mint address of the token being deposited into the pool"),
+        otherTokenMint: zod_1.z.string().describe("The mint address of the other token in the pool"),
+        initialPrice: zod_1.z.instanceof(decimal_js_1.Decimal).describe("The initial price of the deposit token in terms of the other token"),
+        maxPrice: zod_1.z.instanceof(decimal_js_1.Decimal).describe("The maximum price at which liquidity is added"),
+        feeTierBps: zod_1.z.enum(Object.keys(orcaUtils_1.FEE_TIERS)).describe("The fee tier for the pool"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "ORCA_CREATE_SS_LP";
         this.description = `This tool can be used to create single-sided liquidity on Orca.
       Use the tool only for creating single-sided liquidity on Orca.

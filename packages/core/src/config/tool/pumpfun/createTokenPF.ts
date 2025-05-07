@@ -1,7 +1,8 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class SolanaPumpfunTokenLaunchTool extends Tool {
+export class SolanaPumpfunTokenLaunchTool extends StructuredTool {
   name = "solana_launch_pumpfun_token";
 
   description = `This tool can be used to launch a token on Pump.fun,
@@ -15,7 +16,28 @@ export class SolanaPumpfunTokenLaunchTool extends Tool {
    description: string, eg "PumpFun Token is a token on the Solana blockchain",
    imageUrl: string, eg "https://www.creativefabrica.com/wp-content/uploads/2022/10/13/Bobby-Hill-Portrait-41509313-1.png`;
 
-  constructor(private agent: Agent) {
+  constructor(private agent: Agent, override schema = z.object({
+    tokenName: z.string().min(1).max(32).describe("Name of the token"),
+    tokenTicker: z
+      .string()
+      .min(2)
+      .max(10)
+      .describe("Ticker symbol of the token"),
+    description: z
+      .string()
+      .min(1)
+      .max(1000)
+      .describe("Description of the token"),
+    imageUrl: z.string().url().describe("URL of the token image"),
+    twitter: z.string().optional().nullable().describe("Twitter handle (optional)"),
+    telegram: z.string().optional().nullable().describe("Telegram group link (optional)"),
+    website: z.string().url().optional().nullable().describe("Website URL (optional)"),
+    initialLiquiditySOL: z
+      .number()
+      .optional()
+      .nullable()
+      .describe("Initial liquidity in SOL (optional)"),
+  })) {
     super();
   }
 
@@ -40,11 +62,10 @@ export class SolanaPumpfunTokenLaunchTool extends Tool {
     }
   }
 
-  protected async _call(input: string): Promise<string> {
+  protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
     try {
       // Parse and normalize input
-      input = input.trim();
-      const parsedInput = JSON.parse(input);
+      const parsedInput = JSON.parse(JSON.stringify(input));
 
       this.validateInput(parsedInput);
 
@@ -70,11 +91,17 @@ export class SolanaPumpfunTokenLaunchTool extends Tool {
         tokenTicker: parsedInput.tokenTicker,
       });
     } catch (error: any) {
-      return JSON.stringify({
+      if (error instanceof z.ZodError) {
+        return JSON.stringify({
+            status: "error",
+            message: `Invalid input: ${error.message}`,
+        });
+    }
+    return JSON.stringify({
         status: "error",
         message: error.message,
         code: error.code || "UNKNOWN_ERROR",
-      });
+    });
     }
   }
 }

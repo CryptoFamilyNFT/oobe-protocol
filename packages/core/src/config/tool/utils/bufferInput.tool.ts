@@ -1,7 +1,8 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
+import { z } from "zod";
 
-export class BufferInputTool extends Tool {
+export class BufferInputTool extends StructuredTool {
     name = "buffer_input";
     description = "This tool is used to buffer input data. It is not intended for direct use.";
     examples = [
@@ -11,21 +12,23 @@ export class BufferInputTool extends Tool {
         },
     ];
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        input: z.string().describe("Input data to be buffered"),
+    })) {
         super();
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         // Validate input
         if (typeof input !== "string") {
             throw new Error("Input must be a string");
         }
         // Buffer the input data
-        input = input.trim();
-        const parsedInput = JSON.parse(input);
+        input = input;
+        const parsedInput = this.schema.parse(input);
         // Perform buffering operation
 
-       const bufferedData = Buffer.from(parsedInput).toString('base64');
+       const bufferedData = Buffer.from(parsedInput.input).toString('base64');
 
         return JSON.stringify({
             status: "success",

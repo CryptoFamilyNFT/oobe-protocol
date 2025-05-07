@@ -6,10 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaCloseEmptyTokenAccounts = void 0;
 const tools_1 = require("@langchain/core/tools");
 const logger_1 = __importDefault(require("../../../utils/logger/logger"));
-class SolanaCloseEmptyTokenAccounts extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class SolanaCloseEmptyTokenAccounts extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({})) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "close_empty_token_accounts";
         this.description = `Close all empty spl-token accounts and reclaim the rent`;
         this.logger = new logger_1.default();
@@ -25,6 +27,12 @@ class SolanaCloseEmptyTokenAccounts extends tools_1.Tool {
             });
         }
         catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,

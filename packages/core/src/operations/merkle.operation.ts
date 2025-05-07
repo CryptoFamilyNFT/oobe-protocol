@@ -118,6 +118,14 @@ export class MerkleTreeManager {
     return this.merkleTree.verify(proof, leaf, this.merkleTree.getRoot());
   }
 
+  createMerkle(data: any) {
+
+    const leaves = data.map((item: any) => SHA256(item).toString());
+    this.merkleTree = new MerkleTree(leaves, SHA256);
+
+    return this.merkleTree.getRoot().toString('hex');
+  }
+
   async sendTx(programId: PublicKey, wallet: PublicKey, pda: PublicKey, bump: number, data_size: number): Promise<Transaction> {
     const dataBuffer = Buffer.alloc(5); // Allocate a buffer of 5 bytes
     dataBuffer.writeUInt8(0, 0); // First byte is the instruction identifier (0 for initialization)
@@ -153,6 +161,59 @@ export class MerkleTreeManager {
     );
 
     return tx;
+  }
+
+  async onChainPDAPersonality(wallet: PublicKey, connection: Connection) {
+    const programId = new PublicKey("11111111111111111111111111111111");
+    const personalitySeed = "personality";
+    const rpcClient = new SolanaRpcClient()
+
+    const [DB, bump] = PublicKey.findProgramAddressSync(
+      [Buffer.from(SHA256(`${personalitySeed}_db` + wallet.toBase58()).toString().slice(0, 32), 'hex')],
+      programId,
+    );
+
+    const [ROOT, _bump] = PublicKey.findProgramAddressSync(
+      [Buffer.from(SHA256(`${personalitySeed}_root` + wallet.toBase58()).toString().slice(0, 32), 'hex')],
+      programId,
+    );
+
+
+    let root_pda: PublicKey | null = ROOT;
+    let db_pda: PublicKey | null = DB;
+
+    if (!root_pda) {
+      // Create and derive the PDAs allocating space
+      const data_size = 1024;
+
+      const tx = await this.sendTx(programId, wallet, root_pda, bump, data_size);
+      const latestBlockhash = await new SolanaRpcClient().getLatestBlockhash();
+      tx.recentBlockhash = typeof latestBlockhash === 'string' ? latestBlockhash : latestBlockhash.blockhash;
+
+      tx.feePayer = wallet;
+      const signer = new NodeWallet(this.agent.wallet).payer;
+      tx.partialSign(signer);
+      const serializedTransaction = tx.serialize({ requireAllSignatures: false });
+      await rpcClient.sendRawTransaction(serializedTransaction, { skipPreflight: true, preflightCommitment: 'processed' });
+    }
+    if (!db_pda) {
+      // Create and derive the PDAs allocating space
+      const data_size = 1024;
+
+      const tx = await this.sendTx(programId, wallet, db_pda, bump, data_size);
+      const latestBlockhash = await new SolanaRpcClient().getLatestBlockhash();
+      tx.recentBlockhash = typeof latestBlockhash === 'string' ? latestBlockhash : latestBlockhash.blockhash;
+
+      tx.feePayer = wallet;
+      const signer = new NodeWallet(this.agent.wallet).payer;
+      tx.partialSign(signer);
+      const serializedTransaction = tx.serialize({ requireAllSignatures: false });
+      await rpcClient.sendRawTransaction(serializedTransaction, { skipPreflight: true, preflightCommitment: 'processed' });
+    }
+    return {
+      personalityROOT_PDA: root_pda,
+      personalityDB_PDA: db_pda,
+    };
   }
 
   async onChainPDAccounts(wallet: PublicKey, connection: Connection) {
@@ -277,6 +338,111 @@ export class MerkleTreeManager {
 
     const totalBytes = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
     return chunks;
+  }
+
+  async onChainMerklePersonalityInscription(data: MerkleValidatorResult): Promise<any> {
+    const connection = this.agent.connection;
+    const wallet = this.agent.wallet.publicKey;
+
+    const { personalityDB_PDA, personalityROOT_PDA } = await this.onChainPDAPersonality(wallet, connection);
+    if (!personalityDB_PDA || !personalityROOT_PDA) {
+      return;
+    }
+    const { input, result } = data.merkleLeaf;
+    const compressedEvent = data.merkleEvents;
+
+    if (!input || !result || !compressedEvent) {
+      return;
+    }
+
+    const _zeroChunk = Buffer.alloc(128); // Allocate a buffer of 64 bytes
+
+    Buffer.from(input, 'hex').copy(_zeroChunk, 0); // Copy the 32-byte act hash into the first half
+    Buffer.from(result, 'hex').copy(_zeroChunk, 64); // Copy the 32-byte res hash into the second half
+ 
+    const _events = trimTrailingZeros(Buffer.from(compressedEvent, 'utf-8'));
+    const totalChunks = this.calculateChunksFromBuffer(_events, 1, 560);
+    const chunks = [...totalChunks, _zeroChunk];
+    let prevSign: string | null = null;
+    let zeroChunkSign: string | null = null;
+    // Process each chunk in the transaction chain
+    for (let index = 0; index < chunks.length; index++) {
+      const chunk = chunks[index];
+      const isFirstChunk = index === 0;
+      const isLastChunk = index === chunks.length - 1;
+      
+      let _tx;
+
+      if (isFirstChunk && !isLastChunk && chunks.length >= 2) {
+        _tx = await this.sendCustomDataTx(
+          wallet,
+          chunk,
+          connection,
+          personalityDB_PDA,
+          this.agent.wallet,
+        );
+        prevSign = _tx; // Remember this signature for linking the next chunk
+      }
+
+      if (isLastChunk && !isFirstChunk && prevSign) {
+        Buffer.from(prevSign ?? '', 'hex').copy(_zeroChunk, 64); // th
+
+        const act = chunk.subarray(0, 32);
+        const res = chunk.subarray(64, 96);
+
+        const tx = await this.sendCustomDataTx(
+          wallet,
+          Buffer.from(act.toString('hex') + '|' + res.toString('hex') + '|' + prevSign?.toString()),
+          connection,
+          personalityDB_PDA,
+          this.agent.wallet,
+        );
+        prevSign = tx; // Update prevSign to current chunk's signature
+        zeroChunkSign = tx; // Store the signature of the last chunk
+      } else if (!isFirstChunk && !isLastChunk && prevSign) {
+        const combinedIntermediateBuffer = Buffer.alloc(chunk.length + 64);
+        chunk.copy(combinedIntermediateBuffer, chunk.length);
+        Buffer.from(prevSign ?? '', 'hex').copy(combinedIntermediateBuffer, 64);
+
+        if (chunks.length <= 1) {
+          _tx = await this.sendCustomDataTx(
+            wallet,
+            chunk,
+            connection,
+            personalityDB_PDA,
+            this.agent.wallet,
+          );
+          prevSign = _tx
+        } else {
+          const tx = await this.sendCustomDataTx(
+            wallet,
+            Buffer.from(prevSign + '|' + chunk.toString('utf-8')),
+            connection,
+            personalityDB_PDA,
+            this.agent.wallet,
+          );
+          prevSign = tx; // Update prevSign to current chunk's signature
+        }
+      }
+    }
+
+    const signatureRoot = await this.sendCustomDataTx(
+      wallet,
+      Buffer.from(JSON.stringify({ root: data.merkleRoot, proofSignature: zeroChunkSign })),
+      connection,
+      personalityROOT_PDA,
+      this.agent.wallet,
+    );
+
+    return {
+      personalityDB_PDA,
+      zeroChunkSign,
+      signatureRoot,
+      merkleRoot: data.merkleRoot,
+      merkleProof: data.merkleProof,
+      merkleLeaf: data.merkleLeaf,
+      merkleEvents: data.merkleEvents,
+    };
   }
 
   async onChainMerkleInscription(data: MerkleValidatorResult): Promise<any> {

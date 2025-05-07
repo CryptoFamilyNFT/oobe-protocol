@@ -9,7 +9,7 @@ class CreateMemoWithStrategyKeyTool extends tools_1.StructuredTool {
     constructor(kamino) {
         super();
         this.kamino = kamino;
-        this.name = "create_memo_with_strategy_key";
+        this.name = "create_memo_with_strategy_key_for_kamino_strategy";
         this.description = "Creates a memo log on Solana with an encrypted strategy key.";
         this.schema = zod_1.z.object({
             liquidityPoolPubKey: zod_1.z.string().describe("Public key of the liquidity pool"),

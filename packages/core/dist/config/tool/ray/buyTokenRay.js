@@ -4,10 +4,18 @@ exports.RaydiumBuyTokenTool = void 0;
 const tools_1 = require("@langchain/core/tools");
 const spl_token_1 = require("@solana/spl-token");
 const web3_js_1 = require("@solana/web3.js");
-class RaydiumBuyTokenTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class RaydiumBuyTokenTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        tokenMint: zod_1.z.string().describe("Token mint address"),
+        amount: zod_1.z.number().gt(0.0000001).describe("Amount to buy, must be greater than 0.0000001"),
+        slippage: zod_1.z.number().min(0.5).max(18).describe("Slippage percentage, must be between 0.5 and 18"),
+        balanceSol: zod_1.z.number().describe("Balance in SOL"),
+        balanceMint: zod_1.z.number().describe("Balance of the token to buy"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "RAYDIUM_BUY_TOKEN";
         this.description = `This tool can be used to buy a token on Raydium. Await the solana_balance tool response before starting validation and Use the solana_balance tool pointed to "your" agent wallet before and after this tool to check the balance in sol and check your balance in this tokenAddress
     Do not use this tool for any other purpose.
@@ -39,7 +47,7 @@ class RaydiumBuyTokenTool extends tools_1.Tool {
         try {
             console.log("Input received in RAYDIUM_BUY_TOKEN tool:", input);
             // Ensure input is correctly parsed
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             if (!parsedInput || typeof parsedInput !== 'object') {
                 throw new Error("Invalid input format, expected JSON object.");
             }
@@ -65,11 +73,16 @@ class RaydiumBuyTokenTool extends tools_1.Tool {
             return JSON.stringify(result);
         }
         catch (error) {
-            console.error("Error in RAYDIUM_BUY_TOKEN tool:", error);
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,
-                error: error.toString(),
+                code: error.code || "UNKNOWN_ERROR",
             });
         }
     }

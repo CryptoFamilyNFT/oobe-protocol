@@ -10,10 +10,17 @@ const whirlpools_sdk_1 = require("@orca-so/whirlpools-sdk");
 const orcaUtils_1 = require("../../../utils/orca/orcaUtils");
 const tools_1 = require("langchain/tools");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
-class orcaCreateClmm extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class orcaCreateClmm extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        mintDeploy: zod_1.z.string().describe("The mint address to deploy"),
+        mintPair: zod_1.z.string().describe("The mint address of the pair"),
+        initialPrice: zod_1.z.number().describe("The initial price for the position"),
+        feeTier: zod_1.z.enum(Object.keys(orcaUtils_1.FEE_TIERS)).describe("The fee tier for the pool"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "ORCA_CLOSE_POSITION";
         this.description = `This tool can be used to close a position on Orca.
       Use the tool only for closing positions on Orca.
@@ -28,7 +35,7 @@ class orcaCreateClmm extends tools_1.Tool {
       `;
     }
     async _call(input) {
-        const { mintDeploy, mintPair, initialPrice, feeTier } = JSON.parse(input);
+        const { mintDeploy, mintPair, initialPrice, feeTier } = JSON.parse(JSON.stringify(input));
         let initPrice = new decimal_js_1.Decimal(initialPrice);
         try {
             const whirlpoolsConfigAddress = new web3_js_1.PublicKey("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ");
@@ -90,7 +97,11 @@ class orcaCreateClmm extends tools_1.Tool {
             });
         }
         catch (error) {
-            throw new Error(`${error}`);
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+            });
         }
     }
 }

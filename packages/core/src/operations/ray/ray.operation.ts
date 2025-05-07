@@ -284,8 +284,8 @@ export class RayOperation {
         return accounts.map(({ account }) => MARKET_STATE_LAYOUT_V3.decode(account.data));
     }
 
-    async parseTokenAccountData(): Promise<{ tokenAccounts: TokenAccount[]; tokenAccountRawInfos: TokenAccountRaw[]; }> {
-        const accountInfo = await this.agent.connection.getAccountInfo(this.agent.wallet.publicKey);
+    async parseTokenAccountData(account: PublicKey = this.agent.wallet.publicKey): Promise<{ tokenAccounts: TokenAccount[]; tokenAccountRawInfos: TokenAccountRaw[]; }> {
+        const accountInfo = await this.agent.connection.getAccountInfo(account);
         const [tokenAccountResp, tokenAccount2022] = await Promise.all([
             this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: TOKEN_PROGRAM_ID }),
             this.agent.connection.getTokenAccountsByOwner(this.agent.wallet.publicKey, { programId: TOKEN_2022_PROGRAM_ID })

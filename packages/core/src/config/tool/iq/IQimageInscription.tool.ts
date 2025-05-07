@@ -1,8 +1,9 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import { PublicKey } from "@solana/web3.js";
+import { z } from "zod";
 
-export class SolanaIQImageTool extends Tool {
+export class SolanaIQImageTool extends StructuredTool {
     name = "iq_code_in_inscription";
 
     description = `This tool can inscribe an image with ASCII characters using the IQ protocol optimization for data storage.
@@ -12,16 +13,15 @@ export class SolanaIQImageTool extends Tool {
     Inputs:
     imageUrl: string, eg "https://www.creativefabrica.com/wp-content/uploads/2022/10/13/Bobby-Hill-Portrait-41509313-1.png` ;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        imageUrl: z.string().url().describe("URL of the image to be inscribed"),
+    })) {
         super();
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         try {
             // Parse and normalize input
-            input = input.trim();
-            console.log("input", input);
-
             // Launch token with validated input
             const result: Promise<{
                 signature: string;
@@ -33,7 +33,7 @@ export class SolanaIQImageTool extends Tool {
                 signature?: never;
                 codeAccountPDA?: never;
                 dbAccountPDA?: never;
-            }> = await this.agent.generateCodeInIQInscription(input, "image", 10, 0.5);
+            }> = await this.agent.generateCodeInIQInscription(input.imageUrl, "image", 10, 0.5);
 
             return JSON.stringify(result);
         } catch (error: any) {

@@ -3,11 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CheckTokensRugTool = void 0;
 const tools_1 = require("langchain/tools");
 const dex_operation_1 = require("../../../operations/dex/dex.operation");
-class CheckTokensRugTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class CheckTokensRugTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        tokenAddress: zod_1.z.union([zod_1.z.string(), zod_1.z.array(zod_1.z.string())])
+    })) {
         super();
         this.agent = agent;
-        this.name = "check_tokens_rug";
+        this.schema = schema;
+        this.name = "analyze_rug_check_and_technical_analysis_token";
         this.description = `Check if a token is a rug pull. 
     Extract the mint token address from the data if it contains other data.
     If you want to check multiple tokens, you can provide an array of token addresses.
@@ -30,12 +34,17 @@ class CheckTokensRugTool extends tools_1.Tool {
     async _call(input) {
         const dexOps = new dex_operation_1.DexOperation(this.agent);
         try {
-            const { tokenAddress } = JSON.parse(input);
+            const { tokenAddress } = JSON.parse(JSON.stringify(input));
             let data;
             if (Array.isArray(tokenAddress)) {
                 let _tokens = [];
                 for (const token of tokenAddress) {
                     const poolDetails = await dexOps.GetTokenPoolDetails(token);
+                    // Check if poolDetails is empty or has empty string
+                    if (!poolDetails || poolDetails === "") {
+                        console.log(`No pool details found for token: ${token}`);
+                        continue; // Skip this token
+                    }
                     data = await dexOps.GetRugCheckAnalysis(token);
                     const supportLevel = dexOps.calculateSupportLevel(JSON.parse(poolDetails));
                     const resistanceLevel = dexOps.calculateResistanceLevel(JSON.parse(poolDetails));
@@ -87,9 +96,15 @@ class CheckTokensRugTool extends tools_1.Tool {
             return JSON.stringify({ status: 'success', data });
         }
         catch (error) {
+            if (error instanceof zod_1.z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
-                message: error.message,
+                message: error,
                 code: error.code || "UNKNOWN_ERROR",
             });
         }

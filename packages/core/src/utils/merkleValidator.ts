@@ -1,3 +1,4 @@
+import { SpriteProfile } from "../agent-personality";
 import { Agent } from "../agent/Agents";
 import { MerkleTreeManager } from "../operations/merkle.operation";
 import { ResponseMessage } from "../types/agent.interface";
@@ -25,7 +26,7 @@ export interface MerkleValidatorResult {
 }
 
 
-export function merkleValidator(agent: Agent, input: ResponseMessage[], result: Record<string, any>): MerkleValidatorResult {
+export function merkleValidator(agent: Agent, input: ResponseMessage[] | Partial<SpriteProfile> | any[], result: Record<string, any>): MerkleValidatorResult {
     try {
         const merkleTM = new MerkleTreeManager(agent);
         const logger = new Logger()

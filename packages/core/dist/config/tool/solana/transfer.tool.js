@@ -3,10 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaTransferTool = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const tools_1 = require("@langchain/core/tools");
-class SolanaTransferTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class SolanaTransferTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({
+        to: zod_1.z.string().describe("Recipient wallet address"),
+        amount: zod_1.z.number().describe("Amount to transfer"),
+        mint: zod_1.z.string().optional().nullable().describe("Mint address of the token (optional)"),
+    })) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "solana_transfer";
         this.description = `Transfer tokens or SOL to another address ( also called as wallet address ).
 
@@ -17,7 +23,7 @@ class SolanaTransferTool extends tools_1.Tool {
     }
     async _call(input) {
         try {
-            const parsedInput = JSON.parse(input);
+            const parsedInput = input;
             const recipient = new web3_js_1.PublicKey(parsedInput.to);
             const mintAddress = parsedInput.mint
                 ? new web3_js_1.PublicKey(parsedInput.mint)

@@ -72,6 +72,12 @@ export class DexOperation {
                 const data = response.data;
                 if (data.length === 0) {
                     console.log("firstPair", data);
+                    if (data.length === 0) {
+                        return JSON.stringify({
+                            status: "error",
+                            message: "No data found for the provided token address.",
+                        });
+                    }
                     return JSON.stringify({
                         status: "success",
                         message: data as Pair,

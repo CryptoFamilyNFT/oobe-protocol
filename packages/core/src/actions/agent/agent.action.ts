@@ -58,7 +58,8 @@ const createImageAction: Action = {
       .default("natural")
       .describe("The style of the generated image"),
   }),
-  handler: async (agent: Agent, input: Record<string, any>) => {
+  handler: async (agent: Agent, input: z.infer<typeof createImageAction.schema>) => {
+    console.log("\x1b[35m%s\x1b[0m", "Input received in CREATE_IMAGE tool:", input);
     const defaultConfig = new ConfigManager().getDefaultConfig();
     try {
       if (!defaultConfig.openAiKey) {

@@ -1,11 +1,12 @@
-import { Tool } from "langchain/tools";
+import { StructuredTool, Tool } from "langchain/tools";
 import { Agent } from "../../../agent/Agents";
 import { DexOperation } from "../../../operations/dex/dex.operation";
 import { Pair } from "../../../types/dex.interface";
 import { RugCheck } from "../../../types/rugCheck.interface";
+import { z } from "zod";
 
-export class CheckTokensRugTool extends Tool {
-    name = "check_tokens_rug";
+export class CheckTokensRugTool extends StructuredTool {
+    name = "analyze_rug_check_and_technical_analysis_token";
     description = `Check if a token is a rug pull. 
     Extract the mint token address from the data if it contains other data.
     If you want to check multiple tokens, you can provide an array of token addresses.
@@ -25,21 +26,28 @@ export class CheckTokensRugTool extends Tool {
       "tokenAddress": ["SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa", "aEfDdRQtYMWaQrsroBrJ2Q53fgVdq95CV9UPGEvpCxa"]
     }`;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        tokenAddress: z.union([z.string(), z.array(z.string())])
+    })) {
         super();
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         const dexOps = new DexOperation(this.agent);
         
         try {
-            const { tokenAddress } = JSON.parse(input);
+            const { tokenAddress } = JSON.parse(JSON.stringify(input));
 
             let data;
             if (Array.isArray(tokenAddress)) {
                 let _tokens = [];
                 for (const token of tokenAddress) {
                     const poolDetails = await dexOps.GetTokenPoolDetails(token);
+                    // Check if poolDetails is empty or has empty string
+                    if (!poolDetails || poolDetails === "") {
+                        console.log(`No pool details found for token: ${token}`);
+                        continue; // Skip this token
+                    }
                     data = await dexOps.GetRugCheckAnalysis(token);
                     const supportLevel = dexOps.calculateSupportLevel(JSON.parse(poolDetails) as Pair);
                     const resistanceLevel = dexOps.calculateResistanceLevel(JSON.parse(poolDetails) as Pair);
@@ -92,9 +100,15 @@ export class CheckTokensRugTool extends Tool {
 
             return JSON.stringify({status: 'success', data});
         } catch (error: any) {
+            if (error instanceof z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
-                message: error.message,
+                message: error,
                 code: error.code || "UNKNOWN_ERROR",
             });
         }

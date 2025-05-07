@@ -1,9 +1,10 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
+import { z } from "zod";
 
-export class RaydiumSellTokenTool extends Tool {
+export class RaydiumSellTokenTool extends StructuredTool {
 
     name = "RAYDIUM_SELL_TOKEN";
     description = `This tool can be used to sell a token on Raydium for SOL.
@@ -24,7 +25,13 @@ export class RaydiumSellTokenTool extends Tool {
     balanceMint: number, eg "45000000",
     `;
 
-    constructor(private agent: Agent) {
+    constructor(private agent: Agent, override schema = z.object({
+        tokenMint: z.string().describe("TOKEN_MINT_ADDRESS"),
+        amount: z.number().describe("Amount of token to sell"),
+        slippage: z.number().describe("Slippage number for sell"),
+        balanceSol: z.number().describe("balance in sol"),
+        balanceMint: z.number().describe("balance of token mint"),
+    })) {
         super();
     }
 
@@ -37,12 +44,12 @@ export class RaydiumSellTokenTool extends Tool {
         }
     }
 
-    protected async _call(input: string): Promise<string> {
+    protected async _call(input: z.infer<typeof this.schema>): Promise<string> {
         try {
             console.log("Input received in RAYDIUM_SELL_TOKEN tool:", input);
 
             // Ensure input is correctly parsed
-            const parsedInput = JSON.parse(input);
+            const parsedInput = JSON.parse(JSON.stringify(input));
             if (!parsedInput || typeof parsedInput !== 'object') {
                 throw new Error("Invalid input format, expected JSON object.");
             }
@@ -77,11 +84,16 @@ export class RaydiumSellTokenTool extends Tool {
 
             return JSON.stringify(result);
         } catch (error: any) {
-            console.error("Error in RAYDIUM_SELL_TOKEN tool:", error);
+            if (error instanceof z.ZodError) {
+                return JSON.stringify({
+                    status: "error",
+                    message: `Invalid input: ${error.message}`,
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,
-                error: error.toString(),
+                code: error.code || "UNKNOWN_ERROR",
             });
         }
     }

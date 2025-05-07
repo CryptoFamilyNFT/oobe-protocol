@@ -23,6 +23,16 @@ class PDAManager {
             RootPDA,
         };
     }
+    getUserPersonalityPDAs() {
+        const { merkleDbSeed, merkleRootSeed } = { merkleDbSeed: "personality_db", merkleRootSeed: "personality_root" };
+        // Get the PDA for the user
+        const [LeafPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleDbSeed}${this.wallet.toBase58()}`).toString().slice(0, 32), 'hex')], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
+        const [RootPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}${this.wallet.toBase58()}`).toString().slice(0, 32), 'hex')], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
+        return {
+            LeafPDA,
+            RootPDA,
+        };
+    }
 }
 // Class to handle transaction parsing logic
 class TransactionParser {
@@ -278,6 +288,49 @@ class ZeroCombineFetcher {
         return {
             finalTransactions: {
                 tools: allFinalTransactions,
+            },
+        };
+    }
+    async executePersonality(batchSize = 100) {
+        /**
+         * init PDAManager and get user PDAs
+         * @param agentWallet: PublicKey - The wallet address of the agent.
+         */
+        const pdaManager = new PDAManager(this.agentWallet);
+        const userPdas = pdaManager.getUserPersonalityPDAs();
+        console.log("userPdas", userPdas);
+        /**
+         * Get filtered transactions from the Root PDA
+         * @param pda: PublicKey - The PDA address of the Root PDA.
+         * @returns transactionsRoot: ConfirmedSignatureInfo[] - Filtered transactions from the Root PDA.
+         */
+        const transactionsRoot = await TransactionParser.getAllTransactionsFromPDAAccountRoot(userPdas.RootPDA, this.configManager);
+        console.log("transactionsRoot", transactionsRoot);
+        if (transactionsRoot.length === 0) {
+            throw new Error("No transactions found in the Root PDA");
+        }
+        /**
+         * Get filtered transactions from the DB PDA
+         * @param pda: PublicKey - The PDA address of the DB PDA.
+         * @returns transactionsDb: ConfirmedSignatureInfo[] - Filtered transactions from the DB PDA.
+         */
+        const { tupleFinalTreeTxns, allTxns } = await TransactionParser.getAllTransactionsFromPDAAccountDb(this.connection, userPdas.LeafPDA, transactionsRoot);
+        console.log("tupleFinalTreeTxns", tupleFinalTreeTxns);
+        let allFinalTransactions = [];
+        // Process transactions in batches of 100
+        for (let i = 0; i < tupleFinalTreeTxns.length; i += batchSize) {
+            const batch = tupleFinalTreeTxns.slice(i, i + batchSize);
+            // Fetch and process content for the current batch
+            const transactionsDbContent = await ContentFetcher.dbContentFetcher(this.connection, batch, allTxns);
+            const finalTransactions = await ContentFetcher.catchMemoGetContent(this.connection, transactionsDbContent, allTxns);
+            // Merge results into the final array
+            allFinalTransactions = [...allFinalTransactions, ...finalTransactions];
+            // Sleep for 2000ms between batches
+            await (0, core_1.sleep)(2000);
+        }
+        return {
+            finalTransactions: {
+                personalities: allFinalTransactions,
             },
         };
     }

@@ -7,10 +7,12 @@ exports.orcaFetchPositionTool = void 0;
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 const whirlpools_sdk_1 = require("@orca-so/whirlpools-sdk");
 const tools_1 = require("langchain/tools");
-class orcaFetchPositionTool extends tools_1.Tool {
-    constructor(agent) {
+const zod_1 = require("zod");
+class orcaFetchPositionTool extends tools_1.StructuredTool {
+    constructor(agent, schema = zod_1.z.object({})) {
         super();
         this.agent = agent;
+        this.schema = schema;
         this.name = "ORCA_FETCH_POSITION";
         this.description = `Returns A JSON string with an object mapping position mint addresses to position details:
   {
@@ -67,7 +69,11 @@ class orcaFetchPositionTool extends tools_1.Tool {
             return JSON.stringify(result);
         }
         catch (error) {
-            throw new Error(`${error}`);
+            return JSON.stringify({
+                status: "error",
+                message: error.message,
+                code: error.code || "UNKNOWN_ERROR",
+            });
         }
     }
 }
