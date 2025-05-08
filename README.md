@@ -15,172 +15,209 @@ Follow us on social media for the latest updates:
 ## Overview
 The OOBE Protocol SDK is a framework designed to build and manage Solana-based AI agents. It supports advanced features for conversational memory, parallel function calls, smart tool selection, and message history tracking using databases like MongoDB or Redis. This SDK is the core component for developing AI agents on the Solana blockchain, combining the power of AI with blockchain technology.
 
-### Features
--[IN-PROGRESS] **AI Agent Persona**: Manage different AI agent personas with conversational memory and smart tool usage.
-- **Solana Integration**: Leverage the Solana blockchain for decentralized applications.
-- **Parallel Function Calls**: Execute multiple functions simultaneously for increased efficiency.
-- **Message History**: Track and store message history to build intelligent agents with memory.
--[IN-PROGRESS] **Database Support**: Integrates with MongoDB and Redis for memory management.
+# 🧠 OOBE Protocol SDK – Node.js Setup Guide
 
-AI Agents: Capable of conversational memory, decision-making, and seamless tool integration.
+> **Start with the right setup for your environment!**  
+> This guide walks you through configuring your Solana-based application using the OOBE Protocol SDK.
 
-Decentralized Application (DApp): Web3 App to manage your agents in a simple UI [oobe].
+---
 
-Customizable AI Personas: Tailored to specific use cases, from customer support to automated trading.
+## ⚙️ Solana Network Configuration for Application Setup
 
-NFT Collections: Facilitating the creation and management of unique digital assets.
+The `ConfigManager` class in the OOBE Protocol SDK provides a robust and flexible way to configure:
 
-Futures Trading: Using the Adrena protocol to execute advanced trading strategies.
+- ✅ Official and unofficial Solana RPC endpoints  
+- 🔐 Private keys and OpenAI API keys  
+- 🌲 Merkle tree seeds for agent memory and validation  
+- 🔁 Load-balanced fallback endpoints (`transportsRPC`)
 
-SPL Tokens and PumpFun Tokens: Simplifying the creation of on-chain assets.
+---
 
-Market Making and Volume Functionality: Enabling dynamic market strategies and volume optimization.
+## 📦 Getting Started
 
-Real-time Code Exec: Enhance the ability to execute real-time code based on Zod schemas.
+### 1. Import Required Types and Classes
 
-Additionally, the protocol supports all on-chain functions available on Solana, making it a comprehensive tool for blockchain integration.
-
-## Protocol Structure
-The OOBE Protocol is divided into three core modules:
-
-- **Core**: The foundational module, exclusively integrated with OOBE’s proprietary technology. It serves as the central hub for all protocol functionalities.
-- **Desktop**: Designed for backend applications, this module supports development with Node.js, offering robust capabilities for server-side implementations.
-- **React**: A frontend module tailored for integrating OOBE Protocol seamlessly into web applications.
-
-## Who is this for?
-OOBE Protocol is designed for:
-
-- **Blockchain Developers**: Building decentralized apps with AI components.
-- **AI Enthusiasts**: Creating intelligent systems with ease.
-- **Innovators**: Merging AI and blockchain for revolutionary solutions.
-
-## What is OOBE Protocol?
-OOBE Protocol is an SDK developed to provide a straightforward and secure interface for interacting with the OOBE ecosystem for creating and managing AI Agents on-chain. It consists of three packages: **core, desktop, and react**.
-
-## Solana Network Configuration for Application Setup
-This document describes the initial setup process for configuring network settings in a Solana-based application. Following these guidelines ensures that your application environment is prepared correctly with the necessary configurations.
-
-By default, configuration constants include pre-set values. However, you can customize these defaults using the `createDefaultConfig` method from the `ConfigManager` class. This function allows you to tailor the configuration by providing specific values for `privateKey`, `openAiKey`, `oobeKey`, and optionally `solanaEndpoint`, `solanaUnofficialEndpoints`, and `solanaExplorer`. It returns an `IConfiguration` object with your specified values or the default ones if none are provided.
-
-### Configuration Manager Implementation
-```typescript
-import { IConfiguration, IOfficialEndpoint, ISolanaEndpoint, IUnofficialEndpoints } from "./types/config.types";
-
-class ConfigManager {
-    private endpointsConfig: ISolanaEndpoint;
-    private defaultConfig: IConfiguration;
-
-    constructor() {
-        this.endpointsConfig = {
-            official: {
-                rpc: "https://api.mainnet-beta.solana.com"
-            },
-            unOfficial: [
-                {
-                    name: "GenesysGo",
-                    rpc: "https://ssc-dao.genesysgo.net",
-                },
-                {
-                    name: "Project Serum",
-                    rpc: "https://solana-api.projectserum.com",
-                },
-                {
-                    name: "Triton",
-                    rpc: "https://rpc.triton.one",
-                }
-            ]
-        };
-
-        this.defaultConfig = {
-            solanaEndpoint: this.endpointsConfig.official as IOfficialEndpoint,
-            solanaUnofficialEndpoints: this.endpointsConfig.unOfficial as IUnofficialEndpoints[],
-            solanaExplorer: "https://explorer.solana.com",
-            private_key: process.env.PRIVATE_KEY ?? "",
-            openAiKey: process.env.OPENAI_KEY ?? "",
-        };
-    }
-
-    public createEndpointsConfig(officialRpc?: string, unofficialEndpoints?: { name: string, rpc: string }[]): ISolanaEndpoint {
-        return {
-            official: {
-                rpc: officialRpc || this.endpointsConfig.official.rpc
-            },
-            unOfficial: unofficialEndpoints || this.endpointsConfig.unOfficial
-        } as ISolanaEndpoint;
-    }
-
-    public createDefaultConfig(
-        privateKey: string,
-        openAiKey: string,
-        solanaEndpoint?: IOfficialEndpoint,
-        solanaUnofficialEndpoints?: IUnofficialEndpoints[],
-        solanaExplorer?: string,
-    ): IConfiguration {
-        return {
-            solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
-            solanaUnofficialEndpoints: solanaUnofficialEndpoints ?? this.endpointsConfig.unOfficial ?? [],
-            solanaExplorer: solanaExplorer ?? this.defaultConfig.solanaExplorer ?? "",
-            private_key: privateKey,
-            openAiKey: openAiKey,
-        };
-    }
-
-    public getDefaultConfig(): IConfiguration {
-        return this.defaultConfig;
-    }
-
-    public setDefaultConfig(config: IConfiguration): void {
-        this.defaultConfig = config;
-    }
-}
+```ts
+import { IConfiguration, IOfficialEndpoint, IUnofficialEndpoints } from "oobe-protocol/types/config.types";
+import { ConfigManager, OobeCore } from "oobe-protocol";
 ```
 
-## OobeCore Initialization and Usage
-The `OobeCore` class is a central component in our project, responsible for managing the core functionalities of the `oobe-protocol` system.
+---
 
-### Initialization
-```typescript
-import { OobeCore, configManager, IConfiguration } from "oobe-protocol";
+### 2. Create a Configuration Manager
 
-const config: IConfiguration = {...}
-
-const overrideDefConfig = configManager.createDefaultConfig(config);
-  
-const oobe = new OobeCore(configManager.getDefaultConfig()) || new OobeCore(overrideDefConfig);
+```ts
+const configManager = new ConfigManager();
 ```
 
-### Usage
+### 3. Create or Override Default Configuration
 
-#### Starting OobeCore
-```typescript
+```ts
+const config = configManager.createDefaultConfig(
+  "your_private_key_here",
+  "your_openai_key_here",
+  "" // oobeKey (optional)
+);
+```
+
+### 4. Initialize the OobeCore
+
+```ts
+const oobe = new OobeCore(configManager.getDefaultConfig());
+// or
+const oobe = new OobeCore(config);
+```
+
+---
+
+## 🧩 Key Configuration Properties
+
+| Property                  | Description                                                        |
+|---------------------------|--------------------------------------------------------------------|
+| `solanaEndpoint`          | Main RPC endpoint (official)                                       |
+| `solanaUnofficialEndpoints` | Legacy fallback endpoints (prefer `transportsRPC`)               |
+| `openAiKey`               | Your OpenAI API key                                                |
+| `private_key`             | Private key of the agent wallet                                    |
+| `merkleDbSeed`            | Seed for Merkle tree leaf memory                                   |
+| `merkleRootSeed`          | Seed for Merkle root (on-chain memory)                             |
+| `transportsRPC`           | Load-balanced RPC fallback endpoints                               |
+
+---
+
+## 🔧 Core Methods in `ConfigManager`
+
+```ts
+createEndpointsConfig(officialRpc?, unofficialEndpoints?)
+```
+Creates a custom RPC config.
+
+```ts
+createDefaultConfig(privateKey, openAiKey, oobeKey?, ...)
+```
+Returns a full `IConfiguration` object.
+
+```ts
+getDefaultConfig()
+```
+Returns the current default config.
+
+```ts
+setDefaultConfig(config)
+```
+Sets a custom config as default.
+
+---
+
+## 🚀 Initializing the Core Module
+
+```ts
+import { OobeCore, ConfigManager } from "oobe-protocol";
+
+const configManager = new ConfigManager();
+
+const config = configManager.createDefaultConfig(
+  "your_private_key",
+  "your_openai_key"
+);
+
+const oobe = new OobeCore(config);
 await oobe.start();
 ```
 
-#### Creating an Oobe Agent
-```typescript
-const oobeAgent = await oobe.CreateOobeAgent(genAi, tools, memory, messageModifier);
+---
+
+## 🤖 Agent Setup & Execution
+
+### Start the Core
+
+```ts
+await oobe.start();
 ```
 
-#### Accessing Memory
-```typescript
-const memorySaver = await oobe.AccessMemory();
+### Execute Agent Logic
+
+```ts
+import { AgentExecution } from "oobe-protocol";
+await AgentExecution(oobe);
 ```
 
-#### Sending a Human Message
-```typescript
-oobe.AgentHumanMessage("Find a good ticker with a good marketcap and traded til 10k tp");
+### Access the Agent
+
+```ts
+const agent = oobe.getAgent();
 ```
 
-#### Stopping OobeCore
-```typescript
+### Register Actions
+
+```ts
+import { Actions } from "oobe-protocol/actions";
+agent.registerActions(Actions.map(a => a.action));
+```
+
+### Create Solana Tools
+
+```ts
+import { createSolanaTools } from "oobe-protocol/config/tool/index.tool";
+const tools = await createSolanaTools(agent);
+```
+
+### Initialize Memory
+
+```ts
+import { MemorySaver } from "oobe-protocol";
+const memory = new MemorySaver();
+```
+
+---
+
+## 🧠 React Agent with LangGraph
+
+```ts
+import { createReactAgent, ToolNode } from "@langchain/langgraph/prebuilt";
+
+const oobe_agent = createReactAgent({
+  llm: agent.genAi(),
+  tools: tools as ToolNode<any>,
+  checkpointSaver: memory,
+  messageModifier: `You are a person with this personality "${JSON.stringify(await agent.getDefaultPersonality())}"...`,
+});
+```
+
+---
+
+## 💬 Send Human Messages
+
+```ts
+import { HumanMessage } from "@langchain/core/messages";
+
+const stream = await oobe_agent.stream(
+  { messages: [new HumanMessage("Your prompt here")] },
+  { configurable: { thread_id: "OOBE AGENT BUILDER!" } }
+);
+```
+
+---
+
+## 📜 Merkle Tree Validation & On-Chain Inscription
+
+```ts
+const result = await tools[0].run("some_input");
+const validated = agent.merkleValidate(result, agentRes);
+await agent.merkle.onChainMerkleInscription(validated);
+```
+
+---
+
+## 🛑 Shutdown the Core
+
+```ts
 await oobe.stop();
 ```
 
-#### Getting the Agent
-```typescript
-const agent = await oobe.getAgent();
-```
+---
 
-## Learn More
-For a complete guide, visit our GitBook: [OOBE Protocol GitBook](https://oobe-protocol.gitbook.io/oobe-protocol/getting-started/quickstart/initializing-the-core-module)
+## 📚 Summary
 
+With a properly configured Node.js environment using the `ConfigManager` and the `OobeCore` engine, you're ready to unlock the full potential of the OOBE Protocol — building smart, evolving AI agents that interact with Solana natively.
+
+> Explore more modules, tools, and advanced patterns in the full documentation.
