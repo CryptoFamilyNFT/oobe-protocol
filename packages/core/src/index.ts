@@ -1,3 +1,5 @@
+import Logger from './utils/logger/logger';
+import { OobeCore } from './core';
 export * from './actions';
 export * from './agent/Agents';
 export * from './config/default';
@@ -62,3 +64,4 @@ export * from './utils/helpers/ammProgram';
 export * from './utils/helpers/coder';
 export * from './utils/oobe/OobeVectorMemory';
 export * from './utils/oobe/ZeroFormatRecord';
+export { Logger, OobeCore };
