@@ -55,7 +55,7 @@ async function AgentExecution(oobe) {
   */
     const tools = await (0, index_tool_1.createSolanaTools)(agent);
     /**
-     * @description Memory for the agent to store information
+     * @description on of the Memory-Vector for the agent to store information
      */
     const memory = new langgraph_1.MemorySaver();
     const config = { configurable: { thread_id: "OOBE AGENT BUILDER!" } };

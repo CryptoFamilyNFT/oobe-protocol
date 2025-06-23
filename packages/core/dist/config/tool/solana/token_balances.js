@@ -7,10 +7,8 @@ const spl_v1_1 = require("spl-v1");
 const raydium_sdk_v2_1 = require("@raydium-io/raydium-sdk-v2");
 const SmartRoundRobinRPC_1 = require("../../../utils/SmartRoundRobinRPC");
 async function SolanaTokenBalances(agent, walletAddress) {
-    console.log("🚀 Starting SolanaTokenBalances function");
     const solanaRpcClient = new SmartRoundRobinRPC_1.SolanaRpcClient();
     const publicKey = walletAddress ?? agent.wallet.publicKey;
-    console.log("🔑 Using public key:", publicKey.toBase58());
     console.log("⏳ Fetching balances and token accounts...");
     const [lamportsBalance, splTokenAccounts, token2022Accounts] = await Promise.all([
         Number(solanaRpcClient.getBalance(publicKey)),

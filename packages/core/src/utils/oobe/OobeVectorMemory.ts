@@ -28,7 +28,7 @@ export class OobeVectorMemory {
         this.data = await new ZeroFormatRecord().analyzeActions(actions.finalTransactions.tools, formatRes ||  "EMBEDDED") as EmbeddedAction[];
 
         const vectors = await this.embedder.embedDocuments(this.data.map((entry) => JSON.stringify(entry)));
-        return vectors
+        return vectors;
     }
 
     async similaritySearch(query: string, topK = 3): Promise<EmbeddedAction[]> {

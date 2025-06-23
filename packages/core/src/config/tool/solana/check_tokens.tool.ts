@@ -80,7 +80,6 @@ export class CheckTokensRugTool extends StructuredTool {
                     const volatility = dexOps.calculateVolatility(JSON.parse(poolDetails) as Pair);
                     const whaleRisk = dexOps.detectWhaleRisk(JSON.parse(analysis));
                     const riskAnalysis = dexOps.analyzeRisk(JSON.parse(analysis));
-                    const rsi = dexOps.calculateRSI(JSON.parse(poolDetails) as Pair);
                 data = {
                     token: tokenAddress,
                     analysis,
@@ -89,10 +88,9 @@ export class CheckTokensRugTool extends StructuredTool {
                     resistanceLevel,
                     volatility,
                     whaleRisk,
-                    rsi,
                     riskScore: riskAnalysis.score,
                     riskLevel: riskAnalysis.level,
-                    recommendations: dexOps.generateRecommendations(JSON.parse(poolDetails) as Pair, JSON.parse(analysis) as RugCheck)
+                    recommendations: dexOps.generateRecommendations(JSON.parse(poolDetails).message as Pair, JSON.parse(analysis).message as RugCheck)
                 }
             }
 

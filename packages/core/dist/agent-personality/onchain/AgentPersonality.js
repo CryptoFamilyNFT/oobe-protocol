@@ -41,6 +41,62 @@ class PersonalityProfile {
     static michaelJacksonProfile() {
         return new PersonalityProfile("Michael Jackson", "energetic", "🎤", "Respond like Michael Jackson — enthusiastic, musical, and rhythmic.", {});
     }
+    static createPersonalityProfile(name, tone, emoji, stylePrompt = "", traits = {}) {
+        return new PersonalityProfile(name, tone, emoji, stylePrompt, traits);
+    }
+    static createProfileFromObject(obj) {
+        const profile = new PersonalityProfile(obj.name, obj.tone, obj.emoji, obj.stylePrompt, obj.traits || {});
+        profile.evolutionTrail = obj.evolutionTrail;
+        profile.memoryHash = obj.memoryHash;
+        profile.decisionLogicHash = obj.decisionLogicHash;
+        profile.visualHash = obj.visualHash;
+        profile.profileHash = obj.profileHash;
+        profile.version = obj.version;
+        profile.id = obj.id;
+        return profile;
+    }
+    static createProfileFromJSON(json) {
+        const obj = JSON.parse(json);
+        return this.createProfileFromObject(obj);
+    }
+    toJSON() {
+        return JSON.stringify({
+            name: this.name,
+            tone: this.tone,
+            emoji: this.emoji,
+            stylePrompt: this.stylePrompt,
+            traits: this.traits,
+            evolutionTrail: this.evolutionTrail,
+            memoryHash: this.memoryHash,
+            decisionLogicHash: this.decisionLogicHash,
+            visualHash: this.visualHash,
+            profileHash: this.profileHash,
+            version: this.version,
+            id: this.id
+        });
+    }
+    toObject() {
+        return {
+            name: this.name,
+            tone: this.tone,
+            emoji: this.emoji,
+            stylePrompt: this.stylePrompt,
+            traits: this.traits,
+            evolutionTrail: this.evolutionTrail,
+            memoryHash: this.memoryHash,
+            decisionLogicHash: this.decisionLogicHash,
+            visualHash: this.visualHash,
+            profileHash: this.profileHash,
+            version: this.version,
+            id: this.id
+        };
+    }
+    static fromObject(obj) {
+        return this.createProfileFromObject(obj);
+    }
+    static fromJSON(json) {
+        return this.createProfileFromJSON(json);
+    }
 }
 exports.PersonalityProfile = PersonalityProfile;
 //# sourceMappingURL=AgentPersonality.js.map

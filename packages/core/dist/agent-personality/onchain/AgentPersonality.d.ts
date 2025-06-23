@@ -23,5 +23,14 @@ export declare class PersonalityProfile {
         [key: string]: number;
     });
     static michaelJacksonProfile(): PersonalityProfile;
+    static createPersonalityProfile(name: string, tone: string, emoji: string, stylePrompt?: string, traits?: {
+        [key: string]: number;
+    }): PersonalityProfile;
+    static createProfileFromObject(obj: any): PersonalityProfile;
+    static createProfileFromJSON(json: string): PersonalityProfile;
+    toJSON(): string;
+    toObject(): any;
+    static fromObject(obj: any): PersonalityProfile;
+    static fromJSON(json: string): PersonalityProfile;
 }
 //# sourceMappingURL=AgentPersonality.d.ts.map

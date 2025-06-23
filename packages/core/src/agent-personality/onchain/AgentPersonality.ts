@@ -64,4 +64,76 @@ export class PersonalityProfile {
       {}
     );
   }
+
+  static createPersonalityProfile(
+    name: string,
+    tone: string,
+    emoji: string,
+    stylePrompt: string = "",
+    traits: { [key: string]: number } = {}
+  ): PersonalityProfile {
+    return new PersonalityProfile(name, tone, emoji, stylePrompt, traits);
+  }
+  static createProfileFromObject(obj: any): PersonalityProfile {
+    const profile = new PersonalityProfile(
+      obj.name,
+      obj.tone,
+      obj.emoji,
+      obj.stylePrompt,
+      obj.traits || {}
+    );
+    profile.evolutionTrail = obj.evolutionTrail;
+    profile.memoryHash = obj.memoryHash;
+    profile.decisionLogicHash = obj.decisionLogicHash;
+    profile.visualHash = obj.visualHash;
+    profile.profileHash = obj.profileHash;
+    profile.version = obj.version;
+    profile.id = obj.id;
+    return profile;
+  }
+  
+  static createProfileFromJSON(json: string): PersonalityProfile {
+    const obj = JSON.parse(json);
+    return this.createProfileFromObject(obj);
+  }
+
+  toJSON(): string {
+    return JSON.stringify({
+      name: this.name,
+      tone: this.tone,
+      emoji: this.emoji,
+      stylePrompt: this.stylePrompt,
+      traits: this.traits,
+      evolutionTrail: this.evolutionTrail,
+      memoryHash: this.memoryHash,
+      decisionLogicHash: this.decisionLogicHash,
+      visualHash: this.visualHash,
+      profileHash: this.profileHash,
+      version: this.version,
+      id: this.id
+    });
+  }
+  toObject(): any {
+    return {
+      name: this.name,
+      tone: this.tone,
+      emoji: this.emoji,
+      stylePrompt: this.stylePrompt,
+      traits: this.traits,
+      evolutionTrail: this.evolutionTrail,
+      memoryHash: this.memoryHash,
+      decisionLogicHash: this.decisionLogicHash,
+      visualHash: this.visualHash,
+      profileHash: this.profileHash,
+      version: this.version,
+      id: this.id
+    };
+  }
+
+  static fromObject(obj: any): PersonalityProfile {
+    return this.createProfileFromObject(obj);
+  }
+  static fromJSON(json: string): PersonalityProfile {
+    return this.createProfileFromJSON(json);
+  }
 }

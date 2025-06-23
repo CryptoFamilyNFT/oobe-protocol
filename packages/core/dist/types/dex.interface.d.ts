@@ -53,7 +53,6 @@ export interface Pair {
         h24: number;
     };
     priceChange: {
-        m5: number;
         h1: number;
         h6: number;
         h24: number;

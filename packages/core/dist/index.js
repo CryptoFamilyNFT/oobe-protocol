@@ -36,4 +36,37 @@ __exportStar(require("./config/default"), exports);
 __exportStar(require("./config/PDAManager"), exports);
 __exportStar(require("./operations/merkle.operation"), exports);
 __exportStar(require("./config/ZeroCombineFetcher"), exports);
+// Additional exports for all modules:
+__exportStar(require("./agent-personality"), exports);
+__exportStar(require("./agent-personality/logic/TraitTransformer"), exports);
+// Adrena tools
+__exportStar(require("./config/tool/adrena/close_perp.tool"), exports);
+__exportStar(require("./config/tool/adrena/open_perp.tool"), exports);
+// Other config tools
+__exportStar(require("./config/tool/convertLangModel"), exports);
+__exportStar(require("./config/tool/solana/metrics_data.tool"), exports);
+// Ray tools
+__exportStar(require("./config/tool/ray/sellTokenRay"), exports);
+__exportStar(require("./config/tool/ray/getTokensRay"), exports);
+// Kamino tools
+__exportStar(require("./config/tool/kamino/kaminoGetAllStrategies.tool"), exports);
+__exportStar(require("./config/tool/kamino/kaminoGetCustomStrategy.tool"), exports);
+// OOBE token tool
+__exportStar(require("./config/tool/oobe/token_2022.tool"), exports);
+// Agent-personality tools
+__exportStar(require("./config/tool/agent-personality/a-personality.tool"), exports);
+__exportStar(require("./config/tool/agent-personality/g-personality.tool"), exports);
+__exportStar(require("./config/tool/agent-personality/u-personality.tool"), exports);
+// Utility tools
+__exportStar(require("./config/tool/utils/bufferInput.tool"), exports);
+__exportStar(require("./config/tool/utils/wrapperToolsStructured"), exports);
+// Types
+__exportStar(require("./types/rugCheck.interface"), exports);
+__exportStar(require("./types/agent.interface"), exports);
+__exportStar(require("./types/dex.interface"), exports);
+// Helpers
+__exportStar(require("./utils/helpers/ammProgram"), exports);
+__exportStar(require("./utils/helpers/coder"), exports);
+__exportStar(require("./utils/oobe/OobeVectorMemory"), exports);
+__exportStar(require("./utils/oobe/ZeroFormatRecord"), exports);
 //# sourceMappingURL=index.js.map

@@ -477,15 +477,8 @@ export class MerkleTreeManager {
     // console.log("[BEFORE] - Init Events total chunk size:", _events.toString('hex'));
 
     const _events = trimTrailingZeros(Buffer.from(compressedEvent, 'utf-8'));
-    const offset = _events.length;
+    // const offset = _events.length;
     const totalChunks = this.calculateChunksFromBuffer(_events, 1, 560);
-
-    // decode all chunks to see if they are good as the initial input 
-    const decodedTotalChunk = totalChunks.map((c) => {
-      return {
-        events_chunk: c.toString("utf-8")
-      }
-    })
 
     // console.log("[after chunk buffer] - Zero chunk length:", `${zeroChunk.length}`, ' chunkInsideSize:', `${zeroChunk.map(chunk => chunk.length)}`);
     // console.log("[after chunk buffer] - Total chunk length:", `${totalChunks.length}`, ' chunkInsideSize:', `${totalChunks.map(chunk => chunk.length)}`);

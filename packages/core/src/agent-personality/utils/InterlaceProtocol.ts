@@ -19,4 +19,14 @@ export class InterlaceProtocol {
       decisionLogicHash: EvolutionEngine.calculateHash(newTraits),
     };
   }
+
+  static interlaceMultiple(base: SpriteProfile, overlays: SpriteProfile[]): SpriteProfile {
+    let result = base;
+
+    for (const overlay of overlays) {
+      result = InterlaceProtocol.interlace(result, overlay);
+    }
+
+    return result;
+  }
 }

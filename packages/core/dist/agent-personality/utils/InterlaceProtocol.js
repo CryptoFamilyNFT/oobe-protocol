@@ -17,6 +17,13 @@ class InterlaceProtocol {
             decisionLogicHash: EvolutionEngine_1.EvolutionEngine.calculateHash(newTraits),
         };
     }
+    static interlaceMultiple(base, overlays) {
+        let result = base;
+        for (const overlay of overlays) {
+            result = InterlaceProtocol.interlace(result, overlay);
+        }
+        return result;
+    }
 }
 exports.InterlaceProtocol = InterlaceProtocol;
 //# sourceMappingURL=InterlaceProtocol.js.map

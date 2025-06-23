@@ -157,19 +157,15 @@ export class DexOperation {
     }
 
     public calculateRSI(poolData: Pair): number {
-        if (!poolData || !poolData.priceChange || typeof poolData.priceChange.h24 !== "number") {
-            return 50; // Default RSI neutral value if data is missing
-        }
 
+        
         const priceChange24h = poolData.priceChange.h24;
+        console.log("\x1b[31m%s\x1b[0m", "priceChange24h", priceChange24h);
         const period = 1;
 
-        if (period <= 0) {
-            return 50; // Default RSI neutral value
-        }
-
         let gains = 0, losses = 0;
-        const change = priceChange24h;
+        const change = priceChange24h ;
+        console.log("\x1b[31m%s\x1b[0m", "change", change);
 
         if (change > 0) gains += change;
         else losses -= change;
@@ -182,26 +178,14 @@ export class DexOperation {
 
     public generateRecommendations(
         poolData: Pair,
-        rugCheck: RugCheck
+        rugCheck: Partial<RugCheck>
     ): any {
-        if (!poolData || !rugCheck) {
-            return {
-                entryPoint: 0,
-                exitPoint: 0,
-                advice: "⚠ Insufficient data to generate recommendations.",
-            };
-        }
-
-
-        const rsi = this.calculateRSI(poolData) || 50; // Default RSI value if undefined
-
+        
         const eximateSupport = poolData.priceUsd ? Number(poolData.priceUsd) * 0.95 : 0; // 5% below current price
         const supportLevel = poolData.priceUsd ? Number(poolData.priceUsd) - eximateSupport : 0;
-
         return {
-            entryPoint: supportLevel ? supportLevel + 5 : 0,
-            exitPoint: poolData.priceUsd ? Number(poolData.priceUsd) * 1.05 - 5 : 0, // 5% above current price minus 5
-            rsi,
+            entryPoint: supportLevel,
+            exitPoint: Number(poolData.priceUsd) * 1.05,
         };
     }
 
@@ -264,7 +248,7 @@ export class DexOperation {
             insiders: insiders,
             lockersOwener: content.lockerOwners,
             knowAccounts: content.knownAccounts,
-            ...content
+
         }
 
         return JSON.stringify({

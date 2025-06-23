@@ -19,7 +19,7 @@ export declare class DexOperation {
         level: string;
     };
     calculateRSI(poolData: Pair): number;
-    generateRecommendations(poolData: Pair, rugCheck: RugCheck): any;
+    generateRecommendations(poolData: Pair, rugCheck: Partial<RugCheck>): any;
     getTopHoldersPercOnSupply(holders: Holder[], totalSupply: number, decimals: number): {
         percentage: string;
         amount: string;

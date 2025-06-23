@@ -20,10 +20,8 @@ export async function SolanaTokenBalances(
     decimals: number;
   }>;
 }> {
-  console.log("🚀 Starting SolanaTokenBalances function");
   const solanaRpcClient = new SolanaRpcClient();
   const publicKey = walletAddress ?? agent.wallet.publicKey;
-  console.log("🔑 Using public key:", publicKey.toBase58());
 
   console.log("⏳ Fetching balances and token accounts...");
   const [lamportsBalance, splTokenAccounts, token2022Accounts] = await Promise.all([

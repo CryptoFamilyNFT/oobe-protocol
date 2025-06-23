@@ -7,7 +7,6 @@ const open_perp_tool_1 = require("./adrena/open_perp.tool");
 const createImage_tool_1 = require("./agent/createImage.tool");
 const kaminoClaimRewards_tool_1 = require("./kamino/kaminoClaimRewards.tool");
 const kaminoDepositShares_tool_1 = require("./kamino/kaminoDepositShares.tool");
-const kaminoGetAllStrategies_tool_1 = require("./kamino/kaminoGetAllStrategies.tool");
 const kaminoGetAssociateTokens_tools_1 = require("./kamino/kaminoGetAssociateTokens.tools");
 const kaminoGetCustomStrategy_tool_1 = require("./kamino/kaminoGetCustomStrategy.tool");
 const kaminoGetHolders_tool_1 = require("./kamino/kaminoGetHolders.tool");
@@ -67,7 +66,7 @@ async function createSolanaTools(agent) {
         new buyTokenJup_1.JupiterBuyTokenTool(agent),
         new sellTokenJup_1.JupiterSellTokenTool(agent),
         new singularity_tool_1.AgentAwarenessTool(agent),
-        new kaminoGetAllStrategies_tool_1.GetAllKaminoStrategiesTool(kamino),
+        //new GetAllKaminoStrategiesTool(kamino),
         new kaminoGetCustomStrategy_tool_1.GetKaminoCustomStrategyTool(kamino),
         new kaminoGetSharePriceStrategy_tool_1.GetKaminoSharePriceTool(kamino),
         new kaminoGetHolders_tool_1.GetKaminoHoldersTool(kamino),

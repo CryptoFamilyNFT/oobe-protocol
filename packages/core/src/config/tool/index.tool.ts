@@ -69,7 +69,7 @@ export async function createSolanaTools(agent: Agent) {
         new JupiterBuyTokenTool(agent),
         new JupiterSellTokenTool(agent),
         new AgentAwarenessTool(agent),
-        new GetAllKaminoStrategiesTool(kamino),
+        //new GetAllKaminoStrategiesTool(kamino),
         new GetKaminoCustomStrategyTool(kamino),
         new GetKaminoSharePriceTool(kamino),
         new GetKaminoHoldersTool(kamino),

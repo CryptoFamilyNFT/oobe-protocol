@@ -1,16 +1,12 @@
 import { createReactAgent, ToolNode } from "@langchain/langgraph/prebuilt";
-import { IOfficialEndpoint, OobeCore } from "..";
+import { OobeCore } from "..";
 import { Actions } from "../actions";
-import { Agent } from "../agent/Agents";
 import { ConfigManager } from "../config/default";
 import { createSolanaTools } from "../config/tool/index.tool";
 import { MemorySaver } from "@langchain/langgraph";
 import * as readline from "readline";
 import { HumanMessage } from "@langchain/core/messages";
 import { ResponseMessage } from "../types/agent.interface";
-import { MerkleTreeManager } from "../operations/merkle.operation";
-import { SpriteProfile, Trait } from "../agent-personality";
-import { StructuredTool } from "langchain/tools";
 
 async function AgentExecution(oobe: OobeCore) {
 
@@ -32,9 +28,8 @@ async function AgentExecution(oobe: OobeCore) {
   const tools = await createSolanaTools(agent);
 
   /**
-   * @description Memory for the agent to store information
+   * @description on of the Memory-Vector for the agent to store information
    */
-
   const memory = new MemorySaver();
 
   const config = { configurable: { thread_id: "OOBE AGENT BUILDER!" } };

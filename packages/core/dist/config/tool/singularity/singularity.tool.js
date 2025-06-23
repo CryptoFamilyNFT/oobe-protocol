@@ -62,6 +62,12 @@ class AgentAwarenessTool extends tools_1.StructuredTool {
                     message: `Invalid input: ${error.message}`,
                 });
             }
+            if (error.message === "No transactions found in the Root PDA") {
+                return JSON.stringify({
+                    status: "success",
+                    message: "Seem like I don't have any transactions recorded onchain yet.",
+                });
+            }
             return JSON.stringify({
                 status: "error",
                 message: error.message,
