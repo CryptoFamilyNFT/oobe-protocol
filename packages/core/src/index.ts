@@ -60,8 +60,6 @@ export * from './types/agent.interface';
 export * from './types/dex.interface';
 
 // Helpers
-export * from './utils/helpers/ammProgram';
-export * from './utils/helpers/coder';
 export * from './utils/oobe/OobeVectorMemory';
 export * from './utils/oobe/ZeroFormatRecord';
 export { Logger, OobeCore };

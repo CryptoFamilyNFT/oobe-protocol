@@ -73,8 +73,6 @@ __exportStar(require("./types/rugCheck.interface"), exports);
 __exportStar(require("./types/agent.interface"), exports);
 __exportStar(require("./types/dex.interface"), exports);
 // Helpers
-__exportStar(require("./utils/helpers/ammProgram"), exports);
-__exportStar(require("./utils/helpers/coder"), exports);
 __exportStar(require("./utils/oobe/OobeVectorMemory"), exports);
 __exportStar(require("./utils/oobe/ZeroFormatRecord"), exports);
 //# sourceMappingURL=index.js.map
