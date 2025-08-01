@@ -26,24 +26,9 @@ export * from './config/ZeroCombineFetcher';
 export * from './agent-personality';
 export * from './agent-personality/logic/TraitTransformer';
 
-// Adrena tools
-export * from './config/tool/adrena/close_perp.tool';
-export * from './config/tool/adrena/open_perp.tool';
-
-// Other config tools
-export * from './config/tool/convertLangModel';
-export * from './config/tool/solana/metrics_data.tool';
-
 // Ray tools
 export * from './config/tool/ray/sellTokenRay';
 export * from './config/tool/ray/getTokensRay';
-
-// Kamino tools
-export * from './config/tool/kamino/kaminoGetAllStrategies.tool';
-export * from './config/tool/kamino/kaminoGetCustomStrategy.tool';
-
-// OOBE token tool
-export * from './config/tool/oobe/token_2022.tool';
 
 // Agent-personality tools
 export * from './config/tool/agent-personality/a-personality.tool';

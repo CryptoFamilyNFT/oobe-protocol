@@ -47,20 +47,9 @@ __exportStar(require("./config/ZeroCombineFetcher"), exports);
 // Additional exports for all modules:
 __exportStar(require("./agent-personality"), exports);
 __exportStar(require("./agent-personality/logic/TraitTransformer"), exports);
-// Adrena tools
-__exportStar(require("./config/tool/adrena/close_perp.tool"), exports);
-__exportStar(require("./config/tool/adrena/open_perp.tool"), exports);
-// Other config tools
-__exportStar(require("./config/tool/convertLangModel"), exports);
-__exportStar(require("./config/tool/solana/metrics_data.tool"), exports);
 // Ray tools
 __exportStar(require("./config/tool/ray/sellTokenRay"), exports);
 __exportStar(require("./config/tool/ray/getTokensRay"), exports);
-// Kamino tools
-__exportStar(require("./config/tool/kamino/kaminoGetAllStrategies.tool"), exports);
-__exportStar(require("./config/tool/kamino/kaminoGetCustomStrategy.tool"), exports);
-// OOBE token tool
-__exportStar(require("./config/tool/oobe/token_2022.tool"), exports);
 // Agent-personality tools
 __exportStar(require("./config/tool/agent-personality/a-personality.tool"), exports);
 __exportStar(require("./config/tool/agent-personality/g-personality.tool"), exports);

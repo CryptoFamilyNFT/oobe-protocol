@@ -40,6 +40,15 @@ export declare class MerkleTreeManager {
     sendCustomDataTx(wallet: PublicKey, data: Buffer, connection: Connection, pda: PublicKey, signer: Keypair): Promise<any>;
     calculateChunksFromBuffer(buffer: Buffer, minChunkSize?: number, maxChunkSize?: number): Buffer[];
     onChainMerklePersonalityInscription(data: MerkleValidatorResult): Promise<any>;
-    onChainMerkleInscription(data: MerkleValidatorResult): Promise<any>;
+    /**
+     * @name onChainMerkleInscription
+     * @description This function is used to store the Merkle data on-chain.
+     * @param data - The MerkleValidatorResult containing the merkle leaf, events, root, and proof.
+     * @param pdas - The PDA accounts to use for the inscription. [optional]
+     */
+    onChainMerkleInscription(data: MerkleValidatorResult, pdas?: {
+        dbAccountStore: PublicKey;
+        dbAccountRoot: PublicKey;
+    }): Promise<any>;
 }
 //# sourceMappingURL=merkle.operation.d.ts.map

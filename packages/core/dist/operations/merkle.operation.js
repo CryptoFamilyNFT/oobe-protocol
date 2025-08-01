@@ -308,11 +308,17 @@ class MerkleTreeManager {
             merkleEvents: data.merkleEvents,
         };
     }
-    async onChainMerkleInscription(data) {
+    /**
+     * @name onChainMerkleInscription
+     * @description This function is used to store the Merkle data on-chain.
+     * @param data - The MerkleValidatorResult containing the merkle leaf, events, root, and proof.
+     * @param pdas - The PDA accounts to use for the inscription. [optional]
+     */
+    async onChainMerkleInscription(data, pdas) {
         const connection = this.agent.connection;
         const wallet = this.agent.wallet.publicKey;
         //check if the wallet have the DB account to store the events and check if the wallet have the DB account to store the signature of the events trx and the root merkle
-        const { dbAccountStore, dbAccountRoot } = await this.onChainPDAccounts(wallet, connection);
+        const { dbAccountStore, dbAccountRoot } = pdas || await this.onChainPDAccounts(wallet, connection);
         if (!dbAccountStore || !dbAccountRoot) {
             return;
         }

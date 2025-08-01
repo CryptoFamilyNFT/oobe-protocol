@@ -1,4 +1,4 @@
-import { StructuredTool, Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
 import { Agent } from "../../../agent/Agents";
 import { z } from "zod";
 
