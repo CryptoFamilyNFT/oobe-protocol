@@ -27,8 +27,8 @@ class PDAManager {
         this.configManager = new ConfigManager();
     }
 
-    getUserPDAs() {
-        const { merkleDbSeed, merkleRootSeed } = this.configManager.getDefaultConfig();
+    getUserPDAs(custom?: { merkleDbSeed?: string, merkleRootSeed?: string } | undefined, routed?: {LeafPDA: PublicKey, RootPDA: PublicKey} | null) {
+        const { merkleDbSeed, merkleRootSeed } = custom || this.configManager.getDefaultConfig();
 
         // Get the PDA for the user
         const [LeafPDA] = PublicKey.findProgramAddressSync(
@@ -41,10 +41,14 @@ class PDAManager {
             SYSTEM_PROGRAM_ID,
         );
 
-        return {
-            LeafPDA,
-            RootPDA,
-        };
+        if (routed) {
+            return routed;
+        } else {
+            return {
+                LeafPDA,
+                RootPDA,
+            };
+        }
     }
 
     getUserPersonalityPDAs() {
@@ -343,14 +347,15 @@ export class ZeroCombineFetcher {
     }
 
 
-    async execute(batchSize: number = 100): Promise<{ finalTransactions: FinalTransactions }> {
+    async execute(batchSize: number = 100, routed?: { LeafPDA: PublicKey, RootPDA: PublicKey } | null): Promise<{ finalTransactions: FinalTransactions }> {
 
         /**
          * init PDAManager and get user PDAs
          * @param agentWallet: PublicKey - The wallet address of the agent.
          */
+
         const pdaManager = new PDAManager(this.agentWallet);
-        const userPdas = pdaManager.getUserPDAs();
+        const userPdas = pdaManager.getUserPDAs(undefined, routed ? routed : null);
 
         console.log("userPdas", userPdas);
 
