@@ -156,9 +156,9 @@ class MerkleTreeManager {
             personalityDB_PDA: db_pda,
         };
     }
-    async onChainPDAccounts(wallet, connection) {
+    async onChainPDAccounts(wallet, custom, connection) {
         const programId = new web3_js_1.PublicKey("11111111111111111111111111111111");
-        const { merkleDbSeed, merkleRootSeed } = new default_1.ConfigManager().getDefaultConfig();
+        const { merkleDbSeed, merkleRootSeed } = custom || new default_1.ConfigManager().getDefaultConfig();
         const rpcClient = new SmartRoundRobinRPC_1.SolanaRpcClient();
         const [LeafPDA, bump] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleDbSeed}@` + wallet.toBase58()).toString().slice(0, 32), 'hex')], programId);
         const [RootPDA, bumpRoot] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}@` + wallet.toBase58()).toString().slice(0, 32), 'hex')], programId);
@@ -318,7 +318,7 @@ class MerkleTreeManager {
         const connection = this.agent.connection;
         const wallet = this.agent.wallet.publicKey;
         //check if the wallet have the DB account to store the events and check if the wallet have the DB account to store the signature of the events trx and the root merkle
-        const { dbAccountStore, dbAccountRoot } = pdas || await this.onChainPDAccounts(wallet, connection);
+        const { dbAccountStore, dbAccountRoot } = pdas || await this.onChainPDAccounts(wallet);
         if (!dbAccountStore || !dbAccountRoot) {
             return;
         }

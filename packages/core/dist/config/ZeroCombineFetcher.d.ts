@@ -22,7 +22,10 @@ export declare class ZeroCombineFetcher {
     private connection;
     private configManager;
     constructor(agentWallet: PublicKey, connection: Connection, configManager: IConfiguration);
-    execute(batchSize?: number): Promise<{
+    execute(batchSize?: number, routed?: {
+        LeafPDA: PublicKey;
+        RootPDA: PublicKey;
+    } | null): Promise<{
         finalTransactions: FinalTransactions;
     }>;
     executePersonality(batchSize?: number): Promise<{

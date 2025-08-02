@@ -216,9 +216,9 @@ export class MerkleTreeManager {
     };
   }
 
-  async onChainPDAccounts(wallet: PublicKey, connection: Connection) {
+  async onChainPDAccounts(wallet: PublicKey, custom?: { merkleDbSeed: string, merkleRootSeed: string }, connection?: Connection) {
     const programId = new PublicKey("11111111111111111111111111111111");
-    const { merkleDbSeed, merkleRootSeed } = new ConfigManager().getDefaultConfig();
+    const { merkleDbSeed, merkleRootSeed } = custom || new ConfigManager().getDefaultConfig();
     const rpcClient = new SolanaRpcClient()
 
     const [LeafPDA, bump] = PublicKey.findProgramAddressSync(
@@ -460,7 +460,7 @@ export class MerkleTreeManager {
 
     //check if the wallet have the DB account to store the events and check if the wallet have the DB account to store the signature of the events trx and the root merkle
 
-    const { dbAccountStore, dbAccountRoot } = pdas || await this.onChainPDAccounts(wallet, connection);
+    const { dbAccountStore, dbAccountRoot } = pdas || await this.onChainPDAccounts(wallet);
 
     if (!dbAccountStore || !dbAccountRoot) {
       return;

@@ -33,7 +33,10 @@ export declare class MerkleTreeManager {
         personalityROOT_PDA: PublicKey;
         personalityDB_PDA: PublicKey;
     }>;
-    onChainPDAccounts(wallet: PublicKey, connection: Connection): Promise<{
+    onChainPDAccounts(wallet: PublicKey, custom?: {
+        merkleDbSeed: string;
+        merkleRootSeed: string;
+    }, connection?: Connection): Promise<{
         dbAccountStore: PublicKey;
         dbAccountRoot: PublicKey;
     }>;

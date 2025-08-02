@@ -13,15 +13,20 @@ class PDAManager {
         this.wallet = agenWallett;
         this.configManager = new default_1.ConfigManager();
     }
-    getUserPDAs() {
-        const { merkleDbSeed, merkleRootSeed } = this.configManager.getDefaultConfig();
+    getUserPDAs(custom, routed) {
+        const { merkleDbSeed, merkleRootSeed } = custom || this.configManager.getDefaultConfig();
         // Get the PDA for the user
         const [LeafPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleDbSeed}@${this.wallet.toBase58()}`).toString().slice(0, 32), 'hex')], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
         const [RootPDA] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from((0, crypto_js_1.SHA256)(`${merkleRootSeed}@${this.wallet.toBase58()}`).toString().slice(0, 32), 'hex')], raydium_sdk_v2_1.SYSTEM_PROGRAM_ID);
-        return {
-            LeafPDA,
-            RootPDA,
-        };
+        if (routed) {
+            return routed;
+        }
+        else {
+            return {
+                LeafPDA,
+                RootPDA,
+            };
+        }
     }
     getUserPersonalityPDAs() {
         const { merkleDbSeed, merkleRootSeed } = { merkleDbSeed: "personality_db", merkleRootSeed: "personality_root" };
@@ -248,13 +253,13 @@ class ZeroCombineFetcher {
         this.agentWallet = agentWallet;
         this.connection = connection;
     }
-    async execute(batchSize = 100) {
+    async execute(batchSize = 100, routed) {
         /**
          * init PDAManager and get user PDAs
          * @param agentWallet: PublicKey - The wallet address of the agent.
          */
         const pdaManager = new PDAManager(this.agentWallet);
-        const userPdas = pdaManager.getUserPDAs();
+        const userPdas = pdaManager.getUserPDAs(undefined, routed ? routed : null);
         console.log("userPdas", userPdas);
         /**
          * Get filtered transactions from the Root PDA
