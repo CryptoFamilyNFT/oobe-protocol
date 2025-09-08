@@ -1,8 +1,50 @@
+import { PrismaClient } from '../generated/prisma';
+import type { AgentPersona, ProofOfAction, ProofOfEvidence, ProofOfEvolution, MemorySnapshot, SolanaTransaction, TokenMetadata, Prisma } from '../generated/prisma';
 export declare class DBOperations {
-    private dataSource;
-    constructor(host: string, port: number, database: string, username: string, password: string, synchronize: boolean);
+    private prisma;
+    private static instance;
+    constructor();
+    static getInstance(): DBOperations;
     connect(): Promise<void>;
     disconnect(): Promise<void>;
-    getRepository(entity: any): import("typeorm").Repository<import("typeorm").ObjectLiteral>;
+    createAgentPersona(data: Prisma.AgentPersonaCreateInput): Promise<AgentPersona>;
+    getAgentPersona(id: string): Promise<AgentPersona | null>;
+    getAgentPersonaByName(name: string): Promise<AgentPersona | null>;
+    getAgentPersonaByWallet(walletAddress: string): Promise<AgentPersona | null>;
+    updateAgentPersona(id: string, data: Prisma.AgentPersonaUpdateInput): Promise<AgentPersona>;
+    deleteAgentPersona(id: string): Promise<AgentPersona>;
+    listAgentPersonas(options?: {
+        skip?: number;
+        take?: number;
+        where?: Prisma.AgentPersonaWhereInput;
+        orderBy?: Prisma.AgentPersonaOrderByWithRelationInput;
+    }): Promise<AgentPersona[]>;
+    createProofOfAction(data: Prisma.ProofOfActionCreateInput): Promise<ProofOfAction>;
+    getProofOfAction(id: string): Promise<ProofOfAction | null>;
+    getProofsOfActionByPersona(personaId: string): Promise<ProofOfAction[]>;
+    getProofsOfActionByType(actionType: string): Promise<ProofOfAction[]>;
+    createProofOfEvidence(data: Prisma.ProofOfEvidenceCreateInput): Promise<ProofOfEvidence>;
+    getProofOfEvidence(id: string): Promise<ProofOfEvidence | null>;
+    getProofsOfEvidenceByPersona(personaId: string): Promise<ProofOfEvidence[]>;
+    createProofOfEvolution(data: Prisma.ProofOfEvolutionCreateInput): Promise<ProofOfEvolution>;
+    getProofOfEvolution(id: string): Promise<ProofOfEvolution | null>;
+    getProofsOfEvolutionByPersona(personaId: string): Promise<ProofOfEvolution[]>;
+    createMemorySnapshot(data: Prisma.MemorySnapshotCreateInput): Promise<MemorySnapshot>;
+    getMemorySnapshot(id: string): Promise<MemorySnapshot | null>;
+    getMemorySnapshotsByPersona(personaId: string): Promise<MemorySnapshot[]>;
+    createSolanaTransaction(data: Prisma.SolanaTransactionCreateInput): Promise<SolanaTransaction>;
+    getSolanaTransaction(id: string): Promise<SolanaTransaction | null>;
+    getSolanaTransactionByHash(transactionHash: string): Promise<SolanaTransaction | null>;
+    getSolanaTransactionsByWallet(agentWallet: string): Promise<SolanaTransaction[]>;
+    updateSolanaTransaction(id: string, data: Prisma.SolanaTransactionUpdateInput): Promise<SolanaTransaction>;
+    createTokenMetadata(data: Prisma.TokenMetadataCreateInput): Promise<TokenMetadata>;
+    getTokenMetadata(id: string): Promise<TokenMetadata | null>;
+    getTokenMetadataByMint(mintAddress: string): Promise<TokenMetadata | null>;
+    updateTokenMetadata(id: string, data: Prisma.TokenMetadataUpdateInput): Promise<TokenMetadata>;
+    searchTokensBySymbol(symbol: string): Promise<TokenMetadata[]>;
+    executeRawQuery<T = any>(query: string, parameters?: any[]): Promise<T>;
+    executeTransaction<T>(callback: (prisma: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>) => Promise<T>): Promise<T>;
+    healthCheck(): Promise<boolean>;
+    getPrismaClient(): PrismaClient;
 }
 //# sourceMappingURL=db.operation.d.ts.map

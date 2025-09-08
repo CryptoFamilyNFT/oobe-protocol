@@ -1,5 +1,5 @@
-import { CoreTool } from "ai";
 import { IDatabaseConfig } from "../../types/db.interface";
+import { StructuredTool } from "langchain/tools";
 /**
  * @name IUnofficialEndpoints
  * @description Interface for the unofficial endpoints object
@@ -35,6 +35,13 @@ export interface ISolanaEndpoint {
  * @property {IUnofficialEndpoints[]} solanaUnofficialEndpoints - Unofficial Solana endpoints
  * @property {string} solanaExplorer - Solana explorer URL
  * @property {string} memoryType - Memory type for the core module
+ * @property {IDatabaseConfig} dbConfig - Database configuration (legacy TypeORM)
+ * @property {string} url_prisma_db - Prisma database URL connection string
+ * @property {object} memorySaver - MemorySaver configuration for LangGraph state persistence
+ * @property {boolean} memorySaver.enabled - Enable/disable memory saving
+ * @property {string} memorySaver.storageType - Storage type: memory, file, or redis
+ * @property {string} memorySaver.filePath - File path for file-based storage
+ * @property {string} memorySaver.redisUrl - Redis URL for redis-based storage
  */
 export interface IConfiguration {
     solanaEndpoint: IOfficialEndpoint;
@@ -42,6 +49,13 @@ export interface IConfiguration {
     solanaExplorer?: string;
     memoryType?: string;
     dbConfig?: IDatabaseConfig;
+    url_prisma_db?: string;
+    memorySaver?: {
+        enabled?: boolean;
+        storageType?: 'memory' | 'file' | 'redis';
+        filePath?: string;
+        redisUrl?: string;
+    };
     strategy_key: string;
     private_key: string;
     GOOGLE_API_KEY?: string;
@@ -56,7 +70,7 @@ export interface IConfiguration {
  *
  * extend Record<string, CoreTool> for SolanaTools
  */
-export interface ISolanaTools extends Record<string, CoreTool> {
+export interface ISolanaTools extends Record<string, StructuredTool> {
 }
 /**
  *

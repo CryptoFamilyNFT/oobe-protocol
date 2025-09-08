@@ -8,6 +8,9 @@ import { Action } from "../types/action.interface";
 import { createSolanaTools } from "../config/tool/index.tool";
 import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { PumpfunLaunchResponse, PumpFunTokenOptions } from "../types/index.interfaces";
+import { LLMFactory } from "../utils/llm.factory";
+import { LLMConfig, LLMProvider, OpenAIConfig } from "../types/llm.interface";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { PumpfunOperation } from "../operations/pumpfun.operation";
 import { PersonaImpl } from "./persona/Persona";
 import bs58 from "bs58";
@@ -54,6 +57,10 @@ export class Agent {
     public static open_ai: ChatOpenAI;
     private iqOps: IQOperation;
     public merkle: MerkleTreeManager;
+    
+    // Multi-LLM Support
+    private llmFactory: LLMFactory;
+    private currentLLM: BaseChatModel | null = null;
 
     constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string, logger: Logger, private personality?: SpriteProfile) {
         this.solanaOps = new SolanaOperations(solanaEndpoint.rpc, privateKey);
@@ -66,6 +73,14 @@ export class Agent {
         this.iqOps = new IQOperation();
         this.merkle = new MerkleTreeManager(this);
 
+        // Initialize LLM Factory with default OpenAI config
+        const defaultConfig: OpenAIConfig = {
+            provider: 'openai',
+            apiKey: this.OPEN_AI_KEY,
+            model: 'gpt-3.5-turbo'
+        };
+        this.llmFactory = new LLMFactory({ primary: defaultConfig });
+
         if (this.personality) {
             this.logger.info(`Personality initialized: ${this.personality.name}`);
         }
@@ -75,9 +90,88 @@ export class Agent {
         try {
             //await this.dbOps.connect();
             this.verifyInitialization();
+            
+            // Initialize multi-LLM support
+            await this.initializeLLMProviders();
+            
             this.logger.info(`Agent initialized successfully with [Wallet Address]: ${this.logger.colorize(this.walletAddress, 'yellow')}`, "red");
         } catch (error) {
             this.logger.error(`Error initializing agent: ${error}`);
+        }
+    }
+
+    /**
+     * Initialize multiple LLM providers if API keys are available
+     */
+    private async initializeLLMProviders(): Promise<void> {
+        const configs: LLMConfig[] = [];
+
+        // OpenAI (already configured in constructor)
+        if (this.OPEN_AI_KEY) {
+            configs.push({
+                provider: 'openai',
+                apiKey: this.OPEN_AI_KEY,
+                model: 'gpt-4o-mini'
+            });
+        }
+
+        // Groq
+        if (process.env.GROQ_API_KEY) {
+            configs.push({
+                provider: 'groq',
+                apiKey: process.env.GROQ_API_KEY,
+                model: 'mixtral-8x7b-32768'
+            });
+        }
+
+        // Mistral
+        if (process.env.MISTRAL_API_KEY) {
+            configs.push({
+                provider: 'mistral',
+                apiKey: process.env.MISTRAL_API_KEY,
+                model: 'mistral-large-latest'
+            });
+        }
+
+        // Ollama (local)
+        configs.push({
+            provider: 'ollama',
+            model: 'llama3.2',
+            baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+        });
+
+        // Together AI
+        if (process.env.TOGETHER_API_KEY) {
+            configs.push({
+                provider: 'together',
+                apiKey: process.env.TOGETHER_API_KEY,
+                model: 'meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo'
+            });
+        }
+
+        // X.AI
+        if (process.env.XAI_API_KEY) {
+            configs.push({
+                provider: 'xai',
+                apiKey: process.env.XAI_API_KEY,
+                model: 'grok-beta'
+            });
+        }
+
+        // Fireworks
+        if (process.env.FIREWORKS_API_KEY) {
+            configs.push({
+                provider: 'fireworks',
+                apiKey: process.env.FIREWORKS_API_KEY,
+                model: 'accounts/fireworks/models/llama-v3p1-8b-instruct'
+            });
+        }
+
+        if (configs.length > 1) {
+            this.logger.info(`Found ${configs.length} LLM provider configurations`);
+            await this.configureLLMProviders(configs);
+        } else {
+            this.logger.info('Using default OpenAI configuration only');
         }
     }
 
@@ -217,6 +311,123 @@ export class Agent {
         return Agent.open_ai
     }
 
+    // ===== Multi-LLM Provider Methods =====
+
+    /**
+     * Create a new LLM instance with the specified configuration
+     * @param config LLM configuration for any supported provider
+     * @returns Promise<BaseChatModel> LLM instance
+     */
+    async createLLM(config: LLMConfig): Promise<BaseChatModel> {
+        try {
+            const llm = await this.llmFactory.createLLM(config);
+            this.logger.info(`LLM created successfully: ${config.provider.toUpperCase()}`);
+            return llm;
+        } catch (error) {
+            this.logger.error(`Failed to create LLM for ${config.provider}: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Switch to a different LLM provider
+     * @param config New LLM configuration
+     * @returns Promise<BaseChatModel> New LLM instance
+     */
+    async switchLLMProvider(config: LLMConfig): Promise<BaseChatModel> {
+        try {
+            const newLLM = await this.llmFactory.switchProvider(config);
+            this.currentLLM = newLLM;
+            this.logger.info(`Switched to LLM provider: ${config.provider.toUpperCase()}`);
+            return newLLM;
+        } catch (error) {
+            this.logger.error(`Failed to switch to ${config.provider}: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Get the current primary LLM instance
+     * @returns Promise<BaseChatModel> Current LLM instance
+     */
+    async getCurrentLLM(): Promise<BaseChatModel> {
+        if (!this.currentLLM) {
+            this.currentLLM = await this.llmFactory.getPrimaryLLM();
+        }
+        return this.currentLLM;
+    }
+
+    /**
+     * Get available LLM providers and their status
+     * @returns Map of provider statuses
+     */
+    getLLMProviderStatuses() {
+        const statuses = new Map();
+        const providers: LLMProvider[] = ['openai', 'groq', 'mistral', 'ollama', 'together', 'xai', 'fireworks'];
+        
+        providers.forEach(provider => {
+            const status = this.llmFactory.getProviderStatus(provider);
+            statuses.set(provider, status);
+        });
+
+        return statuses;
+    }
+
+    /**
+     * Check if a specific LLM provider is available
+     * @param provider LLM provider name
+     * @returns boolean Provider availability
+     */
+    isLLMProviderAvailable(provider: LLMProvider): boolean {
+        const status = this.llmFactory.getProviderStatus(provider);
+        return status ? status.available : false;
+    }
+
+    /**
+     * Get LLM factory instance for advanced operations
+     * @returns LLMFactory instance
+     */
+    getLLMFactory(): LLMFactory {
+        return this.llmFactory;
+    }
+
+    /**
+     * Set up multiple LLM providers with configurations
+     * @param configs Array of LLM configurations
+     */
+    async configureLLMProviders(configs: LLMConfig[]): Promise<void> {
+        this.logger.info(`Configuring ${configs.length} LLM providers...`);
+        
+        for (const config of configs) {
+            try {
+                await this.createLLM(config);
+                this.logger.info(`✅ ${config.provider.toUpperCase()} configured successfully`);
+            } catch (error) {
+                this.logger.warn(`⚠️ Failed to configure ${config.provider.toUpperCase()}: ${error}`);
+            }
+        }
+    }
+
+    /**
+     * Get the best available LLM based on provider status
+     * @param preferredProviders Ordered list of preferred providers
+     * @returns Promise<BaseChatModel> Best available LLM
+     */
+    async getBestAvailableLLM(preferredProviders?: LLMProvider[]): Promise<BaseChatModel> {
+        const providers = preferredProviders || ['openai', 'groq', 'mistral', 'ollama'];
+        
+        for (const provider of providers) {
+            if (this.isLLMProviderAvailable(provider)) {
+                this.logger.info(`Using ${provider.toUpperCase()} as primary LLM`);
+                return await this.llmFactory.getPrimaryLLM();
+            }
+        }
+
+        // Fallback to default if none of the preferred providers are available
+        this.logger.warn('No preferred providers available, using default LLM');
+        return await this.llmFactory.getPrimaryLLM();
+    }
+
     async verifyInitialization() {
         try {
             //const auth = await this.authenticate();
@@ -283,8 +494,18 @@ export class Agent {
         return Agent.open_ai;
     }
 
-    async getOobeAgent(): Promise<ChatOpenAI<ChatOpenAICallOptions>> {
-        return Agent.open_ai;
+    async getOobeAgent(): Promise<BaseChatModel> {
+        // Return current LLM if available, otherwise fall back to static OpenAI
+        if (this.currentLLM) {
+            return this.currentLLM;
+        }
+        
+        try {
+            return await this.getCurrentLLM();
+        } catch (error) {
+            this.logger.warn(`Failed to get current LLM, falling back to OpenAI: ${error}`);
+            return Agent.open_ai;
+        }
     }
 
     async sendTransaction(transaction: any, signers: Keypair[]): Promise<string> {

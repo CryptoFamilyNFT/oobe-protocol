@@ -1,6 +1,6 @@
 {
   "name": "oobe-protocol",
-  "version": "1.9.4",
+  "version": "2.0.0",
   "description": "That's a protocol for OOBE, an SDK for building AI Agentics and Conversational Interfaces directly on-chain. Chains Available: [Solana]",
   "main": "packages/core/dist/index.js",
   "types": "packages/core/dist/index.d.ts",
@@ -72,7 +72,6 @@
     "langchain": "^0.3.8",
     "merkletreejs": "^0.5.1",
     "multer": "1.4.5-lts.2",
-    "mysql2": "^3.12.0",
     "node-fetch": "2",
     "openai": "^4.77.0",
     "path": "^0.12.7",
@@ -81,7 +80,6 @@
     "spl-v1": "npm:@solana/spl-token@^0.4.13",
     "ts-node": "^10.9.2",
     "typedoc": "^0.27.6",
-    "typeorm": "^0.3.20",
     "undici": "^7.8.0",
     "zod": "^3.24.1"
   },

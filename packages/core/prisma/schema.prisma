@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AgentPersona {
+  id                String    @id @default(cuid())
+  name              String    @unique
+  walletAddress     String?
+  description       String?
+  personality       Json?
+  traits            Json?
+  avatar            String?
+  merkleRoot        String?
+  evolutionLevel    Int       @default(0)
+  experiencePoints  Float     @default(0)
+  memoryData        Json?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  proofsOfAction    ProofOfAction[]
+  proofsOfEvidence  ProofOfEvidence[]
+  proofsOfEvolution ProofOfEvolution[]
+  memorySnapshots   MemorySnapshot[]
+
+  @@index([walletAddress])
+  @@index([name])
+  @@map("agent_personas")
+}
+
+model ProofOfAction {
+  id                String       @id @default(cuid())
+  actionType        String
+  actionData        String
+  actionParameters  Json?
+  transactionHash   String?
+  blockNumber       String?
+  amount            Float?
+  tokenAddress      String?
+  result            String?
+  isSuccessful      Boolean      @default(true)
+  gasUsed           Int?         @default(0)
+  errorMessage      String?
+  createdAt         DateTime     @default(now())
+  personaId         String
+  
+  // Relations
+  persona           AgentPersona @relation(fields: [personaId], references: [id])
+
+  @@index([personaId, createdAt])
+  @@index([actionType])
+  @@index([transactionHash])
+  @@map("proofs_of_action")
+}
+
+model ProofOfEvidence {
+  id                  String       @id @default(cuid())
+  evidenceType        String
+  evidenceData        String
+  sourceType          String?
+  sourceUrl           String?
+  hash                String?
+  metadata            Json?
+  isVerified          Boolean      @default(false)
+  confidenceScore     Float        @default(0)
+  verificationMethod  String?
+  createdAt           DateTime     @default(now())
+  personaId           String
+  
+  // Relations
+  persona             AgentPersona @relation(fields: [personaId], references: [id])
+
+  @@index([personaId, createdAt])
+  @@index([evidenceType])
+  @@index([sourceType])
+  @@map("proofs_of_evidence")
+}
+
+model ProofOfEvolution {
+  id             String       @id @default(cuid())
+  evolutionType  String
+  previousState  Json
+  newState       Json
+  changes        Json
+  reasoning      String?
+  trigger        String?
+  version        Int          @default(1)
+  isReversible   Boolean      @default(false)
+  impactScore    Float        @default(0)
+  merkleProof    String?
+  createdAt      DateTime     @default(now())
+  personaId      String
+  
+  // Relations
+  persona        AgentPersona @relation(fields: [personaId], references: [id])
+
+  @@index([personaId, createdAt])
+  @@index([evolutionType])
+  @@index([version])
+  @@map("proofs_of_evolution")
+}
+
+model MemorySnapshot {
+  id                  String       @id @default(cuid())
+  snapshotType        String
+  memoryData          Json
+  merkleRoot          String
+  merkleProofs        Json?
+  nodeCount           Int          @default(0)
+  sizeBytes           BigInt       @default(0)
+  compressionMethod   String?
+  isCompressed        Boolean      @default(false)
+  description         String?
+  metadata            Json?
+  createdAt           DateTime     @default(now())
+  personaId           String
+  
+  // Relations
+  persona             AgentPersona @relation(fields: [personaId], references: [id])
+
+  @@index([personaId, createdAt])
+  @@index([snapshotType])
+  @@index([merkleRoot])
+  @@map("memory_snapshots")
+}
+
+model SolanaTransaction {
+  id                    String    @id @default(cuid())
+  transactionHash       String
+  agentWallet           String?
+  blockNumber           String?
+  blockTime             DateTime?
+  slot                  Int       @default(0)
+  status                String    @default("pending") // pending, confirmed, finalized, failed
+  confirmations         Int?
+  instructions          Json?
+  accountKeys           Json?
+  fee                   BigInt    @default(0)
+  memo                  String?
+  logs                  Json?
+  errorMessage          String?
+  balanceChanges        Json?
+  tokenBalanceChanges   Json?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([agentWallet])
+  @@index([transactionHash])
+  @@index([blockTime])
+  @@index([status])
+  @@map("solana_transactions")
+}
+
+model TokenMetadata {
+  id                 String    @id @default(cuid())
+  mintAddress        String    @unique
+  name               String?
+  symbol             String?
+  description        String?
+  logoUri            String?
+  decimals           Int       @default(9)
+  totalSupply        Float?
+  circulatingSupply  Float?
+  price              Float?
+  marketCap          Float?
+  volume24h          Float?
+  priceChange24h     Float?
+  social             Json?
+  website            String?
+  isActive           Boolean   @default(true)
+  isVerified         Boolean   @default(false)
+  tags               Json?
+  extensions         Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([mintAddress])
+  @@index([symbol])
+  @@index([isActive])
+  @@map("token_metadata")
+}

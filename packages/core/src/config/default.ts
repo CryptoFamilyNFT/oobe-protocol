@@ -35,6 +35,12 @@ export class ConfigManager {
             merkleDbSeed: "oobedbleaf!",
             merkleRootSeed: "oobedbroot!",
             strategy_key: '',
+            url_prisma_db: "file:./oobe.db",
+            memorySaver: {
+                enabled: true,
+                storageType: "file",
+                filePath: "./memory.sqlite",
+            },
             transportsRPC: [
                 'https://api.mainnet-beta.solana.com',                      // Solana Labs (Ufficiale)
                 'https://rpc.shdw.genesysgo.net',                           // GenesysGo (Shadow RPC)
@@ -42,7 +48,6 @@ export class ConfigManager {
                 'https://solana.drpc.org',                                  // dRPC
                 'https://endpoints.omniatech.io/v1/sol/mainnet/public',     // OMNIA
                 'https://solana.api.onfinality.io/public',                  // OnFinality
-                'https://solana.leorpc.com/?api_key=FREE',                  // LeoRPC (con API key gratuita)
               ],
         };
     }
@@ -67,8 +72,15 @@ export class ConfigManager {
         merkleRootSeed: string = "oobedbroot",
         strategy_key?: string,
         transportsRPC?: string[],
+        url_prisma_db?: string,
+        memorySaver?: {
+            enabled?: boolean,
+            storageType?: 'memory' | 'file' | 'redis',
+            filePath?: string,
+            redisUrl?: string,
+        },
     ): IConfiguration {
-        return {
+        const config: IConfiguration = {
             solanaEndpoint: solanaEndpoint || this.endpointsConfig.official,
             solanaUnofficialEndpoints: solanaUnofficialEndpoints ?? this.endpointsConfig.unOfficial ?? [],
             solanaExplorer: solanaExplorer ?? this.defaultConfig.solanaExplorer ?? "",
@@ -80,6 +92,21 @@ export class ConfigManager {
             strategy_key: strategy_key || '',
             transportsRPC: transportsRPC || [],
         };
+
+        // Add optional properties only if they have values
+        if (url_prisma_db !== undefined) {
+            config.url_prisma_db = url_prisma_db;
+        } else if (this.defaultConfig.url_prisma_db !== undefined) {
+            config.url_prisma_db = this.defaultConfig.url_prisma_db;
+        }
+
+        if (memorySaver !== undefined) {
+            config.memorySaver = memorySaver;
+        } else if (this.defaultConfig.memorySaver !== undefined) {
+            config.memorySaver = this.defaultConfig.memorySaver;
+        }
+
+        return config;
     }
 
     public getDefaultConfig(): IConfiguration {

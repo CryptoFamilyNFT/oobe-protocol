@@ -7,7 +7,12 @@ export declare class ConfigManager {
         name: string;
         rpc: string;
     }[]): ISolanaEndpoint;
-    createDefaultConfig(privateKey: string, openAiKey: string, oobeKey: string, solanaEndpoint?: IOfficialEndpoint, solanaUnofficialEndpoints?: IUnofficialEndpoints[], solanaExplorer?: string, merkleDbSeed?: string, merkleRootSeed?: string, strategy_key?: string, transportsRPC?: string[]): IConfiguration;
+    createDefaultConfig(privateKey: string, openAiKey: string, oobeKey: string, solanaEndpoint?: IOfficialEndpoint, solanaUnofficialEndpoints?: IUnofficialEndpoints[], solanaExplorer?: string, merkleDbSeed?: string, merkleRootSeed?: string, strategy_key?: string, transportsRPC?: string[], url_prisma_db?: string, memorySaver?: {
+        enabled?: boolean;
+        storageType?: 'memory' | 'file' | 'redis';
+        filePath?: string;
+        redisUrl?: string;
+    }): IConfiguration;
     getDefaultConfig(): IConfiguration;
     setDefaultConfig(config: IConfiguration | Partial<IConfiguration>): IConfiguration;
 }
