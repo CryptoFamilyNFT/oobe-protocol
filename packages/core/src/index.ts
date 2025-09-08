@@ -14,11 +14,13 @@ export * from './core';
 // Database exports
 export * from './services/database.service';
 export * from './operations/db.operation';
+export * from './repositories';
 export * from './generated/prisma';
 
 // Utils exports
 export * from './utils/memorySaver.helper';
 export * from './utils/redis-session.manager';
+export * from './utils/llm.factory';
 
 // Operations exports
 export * from './operations/pumpfun.operation';
@@ -32,6 +34,8 @@ export * from './types/index.interfaces';
 export * from './types/rugCheck.interface';
 export * from './types/agent.interface';
 export * from './types/dex.interface';
+export * from './types/llm.interface';
+export * from './types/core.interface';
 
 // Utility exports
 export * from './utils/actionExec';
@@ -70,3 +74,8 @@ export { DatabaseService } from './services/database.service';
 
 // Default exports
 export { Logger, OobeCore };
+
+// Named exports for convenient direct imports
+export { LLMFactory } from './utils/llm.factory';
+export { RedisSessionManager } from './utils/redis-session.manager';
+export { Agent } from './agent/Agents';

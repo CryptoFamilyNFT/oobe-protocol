@@ -39,10 +39,10 @@ class ChatApplication {
     
     try {
       await this.core.start();
-      console.log('🚀 Chat application started with Redis sessions');
+      console.log('-- Chat application started with Redis sessions');
       return true;
     } catch (error) {
-      console.log('⚠️ Redis not available, using fallback storage');
+      console.log('-- Redis not available, using fallback storage');
       console.log('Error:', error.message);
       return false;
     }
@@ -81,7 +81,7 @@ class ChatApplication {
     try {
       const sessions = await this.core.listSessions();
       if (sessions) {
-        console.log('📋 Active sessions:');
+        console.log('-- Active sessions:');
         sessions.forEach(session => {
           console.log(`  - User: ${session.userId || 'anonymous'}, Session: ${session.id}, Last accessed: ${session.lastAccessed}`);
         });
@@ -89,7 +89,7 @@ class ChatApplication {
       }
       
       // Fallback for non-Redis storage
-      console.log('📋 Fallback sessions:', Array.from(this.userSessions.entries()));
+      console.log('-- Fallback sessions:', Array.from(this.userSessions.entries()));
       return Array.from(this.userSessions.entries()).map(([userId, sessionId]) => ({
         userId,
         sessionId,
@@ -106,7 +106,7 @@ class ChatApplication {
     try {
       const stats = await this.core.getSessionStats();
       if (stats) {
-        console.log('📊 Session Statistics:');
+        console.log('-- Session Statistics:');
         console.log(`  - Total sessions: ${stats.totalSessions}`);
         console.log(`  - Sessions by user:`, stats.sessionsByUser);
         console.log(`  - Average session age: ${Math.round(stats.averageSessionAge / 1000 / 60)} minutes`);

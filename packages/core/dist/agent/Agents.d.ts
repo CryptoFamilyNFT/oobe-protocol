@@ -5,6 +5,9 @@ import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Action } from "../types/action.interface";
 import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { PumpfunLaunchResponse, PumpFunTokenOptions } from "../types/index.interfaces";
+import { LLMFactory } from "../utils/llm.factory";
+import { LLMConfig, LLMProvider } from "../types/llm.interface";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { PersonaImpl } from "./persona/Persona";
 import { closePerpTradeLong, closePerpTradeShort, openPerpTradeLong, openPerpTradeShort } from "../operations/adrena/adrena.operation";
 import { MerkleValidatorResult } from "../utils/merkleValidator";
@@ -39,8 +42,14 @@ export declare class Agent {
     static open_ai: ChatOpenAI;
     private iqOps;
     merkle: MerkleTreeManager;
+    private llmFactory;
+    private currentLLM;
     constructor(solanaEndpoint: IOfficialEndpoint, privateKey: string, openKey: string, logger: Logger, personality?: SpriteProfile | undefined);
     initialize(): Promise<void>;
+    /**
+     * Initialize multiple LLM providers if API keys are available
+     */
+    private initializeLLMProviders;
     createPersona(name: string): Promise<PersonaImpl>;
     initOpenAiAuth(): Promise<void>;
     getOpenK(): Promise<string>;
@@ -49,6 +58,50 @@ export declare class Agent {
     setPersonality(personality: SpriteProfile): Promise<void>;
     getDefaultPersonality(): Promise<SpriteProfile>;
     getOpenAi(): Promise<ChatOpenAI<ChatOpenAICallOptions>>;
+    /**
+     * Create a new LLM instance with the specified configuration
+     * @param config LLM configuration for any supported provider
+     * @returns Promise<BaseChatModel> LLM instance
+     */
+    createLLM(config: LLMConfig): Promise<BaseChatModel>;
+    /**
+     * Switch to a different LLM provider
+     * @param config New LLM configuration
+     * @returns Promise<BaseChatModel> New LLM instance
+     */
+    switchLLMProvider(config: LLMConfig): Promise<BaseChatModel>;
+    /**
+     * Get the current primary LLM instance
+     * @returns Promise<BaseChatModel> Current LLM instance
+     */
+    getCurrentLLM(): Promise<BaseChatModel>;
+    /**
+     * Get available LLM providers and their status
+     * @returns Map of provider statuses
+     */
+    getLLMProviderStatuses(): Map<any, any>;
+    /**
+     * Check if a specific LLM provider is available
+     * @param provider LLM provider name
+     * @returns boolean Provider availability
+     */
+    isLLMProviderAvailable(provider: LLMProvider): boolean;
+    /**
+     * Get LLM factory instance for advanced operations
+     * @returns LLMFactory instance
+     */
+    getLLMFactory(): LLMFactory;
+    /**
+     * Set up multiple LLM providers with configurations
+     * @param configs Array of LLM configurations
+     */
+    configureLLMProviders(configs: LLMConfig[]): Promise<void>;
+    /**
+     * Get the best available LLM based on provider status
+     * @param preferredProviders Ordered list of preferred providers
+     * @returns Promise<BaseChatModel> Best available LLM
+     */
+    getBestAvailableLLM(preferredProviders?: LLMProvider[]): Promise<BaseChatModel>;
     verifyInitialization(): Promise<void>;
     start(): Promise<void>;
     shutdown(): Promise<void>;
@@ -56,7 +109,7 @@ export declare class Agent {
     registerActions(actions: Action[]): Promise<(import("../config/tool/adrena/close_perp.tool").PerpCloseTradeTool | import("../config/tool/adrena/open_perp.tool").PerpOpenTradeTool | import("..").SolanaCreateImageTool | import("../config/tool/kamino/kaminoClaimRewards.tool").ClaimRewardsTool | import("../config/tool/kamino/kaminoDepositShares.tool").DepositSharesTool | import("../config/tool/kamino/kaminoGetAssociateTokens.tools").GetAssociatedForTokensAndSharesTool | import("../config/tool/kamino/kaminoGetCustomStrategy.tool").GetKaminoCustomStrategyTool | import("../config/tool/kamino/kaminoGetHolders.tool").GetKaminoHoldersTool | import("../config/tool/kamino/kaminoGetSharePriceStrategy.tool").GetKaminoSharePriceTool | import("../config/tool/kamino/kaminoWithdrawShares.tool").WithdrawSharesTool | import("../config/tool/kamino/keminoCreateMemoWithStrategy.tool").CreateMemoWithStrategyKeyTool | import("../config/tool/iq/IQimageInscription.tool").SolanaIQImageTool | import("../config/tool/jup/buyTokenJup").JupiterBuyTokenTool | import("../config/tool/jup/sellTokenJup").JupiterSellTokenTool | import("../config/tool/oobe/token_2022.tool").createToken2022Tool | import("../config/tool/orca/orca_create_clmm.tool").orcaCreateClmm | import("../config/tool/orca/orca_create_ss_lp").orcaCreateSsLp | import("../config/tool/orca/orca_fetch_position.tool").orcaFetchPositionTool | import("../config/tool/orca/orca_pos_close.tool").orcaClosePositionTool | import("../config/tool/pumpfun/createTokenPF").SolanaPumpfunTokenLaunchTool | import("../config/tool/ray/buyTokenRay").RaydiumBuyTokenTool | import("..").RaydiumSellTokenTool | import("../config/tool/singularity/singularity.tool").AgentAwarenessTool | import("../config/tool/solana/balance.tool").SolanaBalanceTool | import("../config/tool/solana/balance_all.tool").balanceAllTokensOwnedTool | import("../config/tool/solana/balance_of.tool").SolanaBalanceOtherTool | import("../config/tool/solana/check_tokens.tool").CheckTokensRugTool | import("../config/tool/solana/close_empty_account.tool").SolanaCloseEmptyTokenAccounts | import("../config/tool/solana/fetch_agent_wallet").FetchAgentKeypair | import("../config/tool/solana/tps.tool").SolanaTPSCalculatorTool | import("../config/tool/solana/transfer.tool").SolanaTransferTool | import("..").BufferInputTool | import("..").PersonalityTool | import("..").GetPersonalityTool | import("..").UsePersonalityTool)[]>;
     executeAction(actionName: string, input: Record<string, any>): Promise<Record<string, any>>;
     genAi(): ChatOpenAI<ChatOpenAICallOptions>;
-    getOobeAgent(): Promise<ChatOpenAI<ChatOpenAICallOptions>>;
+    getOobeAgent(): Promise<BaseChatModel>;
     sendTransaction(transaction: any, signers: Keypair[]): Promise<string>;
     /**
      * Get Solana operation for tools [wrapped]
