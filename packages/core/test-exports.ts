@@ -24,12 +24,6 @@ import {
   // Core types
   IConfiguration,
   
-  // Database types from Prisma
-  AgentPersona,
-  ProofOfAction,
-  ProofOfEvidence,
-  ProofOfEvolution,
-  
 } from './src/index';
 
 console.log('✅ All exports imported successfully!');

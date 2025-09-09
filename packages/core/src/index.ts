@@ -11,11 +11,9 @@ export * from './config/tool/index.tool';
 export * from './config/types/config.types';
 export * from './core';
 
-// Database exports
+// Database exports (Prisma only - TypeORM removed)
 export * from './services/database.service';
 export * from './operations/db.operation';
-export * from './repositories';
-export * from './generated/prisma';
 
 // Utils exports
 export * from './utils/memorySaver.helper';

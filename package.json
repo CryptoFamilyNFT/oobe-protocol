@@ -1,6 +1,6 @@
 {
   "name": "oobe-protocol",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "That's a protocol for OOBE, an SDK for building AI Agentics and Conversational Interfaces directly on-chain. Chains Available: [Solana]",
   "main": "packages/core/dist/index.js",
   "types": "packages/core/dist/index.d.ts",
@@ -22,6 +22,7 @@
     "@langchain/google-genai": "^0.1.7",
     "@langchain/groq": "^0.1.2",
     "@langchain/langgraph": "^0.2.36",
+    "@langchain/ollama": "^0.2.4",
     "@langchain/openai": "^0.3.16",
     "@lightprotocol/compressed-token": "^0.17.1",
     "@lightprotocol/stateless.js": "^0.17.1",

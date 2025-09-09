@@ -8,11 +8,14 @@
 console.log('🧪 Testing Next.js import compatibility...');
 
 try {
-  // This should work without the TypeORM "getMetadataArgsStorage" error
-  const { OobeCore, DatabaseService } = require('./dist/index.js');
+  // Test core imports with new multi-LLM exports
+  const { OobeCore, DatabaseService, LLMFactory, RedisSessionManager, Agent } = require('./dist/index.js');
   
   console.log('✅ Successfully imported OobeCore:', typeof OobeCore);
   console.log('✅ Successfully imported DatabaseService:', typeof DatabaseService);
+  console.log('✅ Successfully imported LLMFactory:', typeof LLMFactory);
+  console.log('✅ Successfully imported RedisSessionManager:', typeof RedisSessionManager);
+  console.log('✅ Successfully imported Agent:', typeof Agent);
   
   // Test basic instantiation (should not throw metadata errors)
   console.log('🔧 Testing basic configuration...');

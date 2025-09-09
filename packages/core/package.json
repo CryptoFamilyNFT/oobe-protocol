@@ -78,7 +78,6 @@
     "spl-v1": "link:pnpm:@solana/spl-token@1.4.9",
     "ts-node": "^10.9.2",
     "typedoc": "^0.27.6",
-    "typeorm": "^0.3.20",
     "zod": "^3.24.1"
   },
   "devDependencies": {
